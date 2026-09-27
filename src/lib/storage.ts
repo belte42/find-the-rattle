@@ -16,3 +16,8 @@ export function save(key: string, value: unknown): void {
     /* storage unavailable - settings just won't persist */
   }
 }
+
+/** `value` if it is a finite number, otherwise `fallback` */
+export function num(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}

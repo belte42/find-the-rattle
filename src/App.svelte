@@ -2,35 +2,60 @@
   import { onDestroy } from 'svelte'
   import {
     CircleAlert,
+    Settings,
     SlidersHorizontal,
     TestTubes,
     Volume1,
   } from 'lucide-svelte'
   import { AudioEngine } from './lib/audioEngine'
   import * as wakeLock from './lib/wakeLock'
-  import { load, save } from './lib/storage'
+  import { load, num, save } from './lib/storage'
   import {
+    AUTO_STOP_OPTIONS,
+    DEFAULT_AUTO_STOP,
     DEFAULT_VOLUME,
     FREQ_MAX,
     FREQ_MIN,
+    MAX_SWEEP_SPEED,
+    MIN_SWEEP_SPEED,
     REACTION_TIME_S,
+    REFINE_SPAN,
+    REFINE_SPEED,
     clampFreq,
     type RattleRecord,
+    type TestState,
   } from './consts'
   import ManualPanel from './ManualPanel.svelte'
   import RattleTestPanel from './RattleTestPanel.svelte'
+  import SettingsSheet from './SettingsSheet.svelte'
 
   const WARNING_KEY = 'rattle-finder-warning-dismissed'
   const RECORDS_KEY = 'rattle-finder-records'
   const VOLUME_KEY = 'rattle-finder-volume'
+  const SETTINGS_KEY = 'rattle-finder-settings'
+  const TEST_KEY = 'rattle-finder-test'
+  /** Taps this soon after starting are the second half of a double tap */
+  const DOUBLE_TAP_MS = 400
 
   const engine = new AudioEngine()
 
+  const storedSettings = load<Record<string, unknown>>(SETTINGS_KEY, {})
+  const storedTest = load<Record<string, unknown>>(TEST_KEY, {})
+  const initialVolume = num(load<unknown>(VOLUME_KEY, null), DEFAULT_VOLUME)
+
   let warningDismissed = $state(load<unknown>(WARNING_KEY, false) === true)
-  const storedVolume = load<unknown>(VOLUME_KEY, DEFAULT_VOLUME)
-  const initialVolume =
-    typeof storedVolume === 'number' ? storedVolume : DEFAULT_VOLUME
   let volume = $state(initialVolume)
+  let settingsOpen = $state(false)
+  let autoStopMin = $state(
+    AUTO_STOP_OPTIONS.includes(storedSettings.autoStopMin as number)
+      ? (storedSettings.autoStopMin as number)
+      : DEFAULT_AUTO_STOP
+  )
+  let reactionMs = $state<number | null>(
+    typeof storedSettings.reactionMs === 'number'
+      ? storedSettings.reactionMs
+      : null
+  )
 
   // Manual mode
   let frequency = $state(100)
@@ -39,24 +64,53 @@
   let audioActive = $state(false)
   /** True while the audio context is being started, to ignore repeat taps */
   let starting = $state(false)
+  let remaining = $state<number | null>(null)
 
   // Rattle Test mode
   let rattleTestMode = $state(false)
-  let rattleTestActive = $state(false)
-  let rangeMin = $state<number | null>(30)
-  let rangeMax = $state<number | null>(150)
-  let sweepSpeed = $state(2)
+  let testState = $state<TestState>('idle')
+  let rangeMin = $state<number | null>(num(storedTest.rangeMin, 30))
+  let rangeMax = $state<number | null>(num(storedTest.rangeMax, 150))
+  let sweepSpeed = $state(
+    Math.max(
+      MIN_SWEEP_SPEED,
+      Math.min(MAX_SWEEP_SPEED, num(storedTest.sweepSpeed, 2))
+    )
+  )
+  let loop = $state(storedTest.loop === true)
   let sweepCurrentFreq = $state(30)
+  let sweepDirection = $state<1 | -1 | 0>(0)
+  let refine = $state<{ lo: number; hi: number; name: string } | null>(null)
+  let lastMark = $state<{ frequency: number; count: number } | null>(null)
   let rattleRecords = $state<RattleRecord[]>(loadRecords())
   let frameId = 0
-  /** When playback last started, to ignore the second tap of a double tap */
   let startedAt = 0
+  /** Speed setting to restore after a refine sweep, which runs slower */
+  let speedBeforeRefine = 0
 
   engine.setVolume(initialVolume)
   engine.onEnded = stopAll
 
   $effect(() => save(RECORDS_KEY, rattleRecords))
   $effect(() => save(VOLUME_KEY, volume))
+  $effect(() => save(SETTINGS_KEY, { autoStopMin, reactionMs }))
+  $effect(() => save(TEST_KEY, { rangeMin, rangeMax, sweepSpeed, loop }))
+  $effect(() => engine.setAutoStop(autoStopMin ? autoStopMin * 60 : null))
+
+  $effect(() => {
+    // Apply speed changes to a running or held sweep
+    const speed = sweepSpeed
+    if (testState !== 'idle') engine.setSweepSpeed(speed)
+  })
+
+  $effect(() => {
+    // Auto-stop countdown (display only; the stop itself is on the audio clock)
+    if (!audioActive) return
+    const tick = () => (remaining = engine.getRemainingTime())
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  })
 
   onDestroy(() => {
     stopAll()
@@ -66,16 +120,23 @@
   function loadRecords(): RattleRecord[] {
     const stored = load<unknown>(RECORDS_KEY, [])
     if (!Array.isArray(stored)) return []
-    return stored.filter(
-      (r): r is RattleRecord =>
-        typeof r?.id === 'string' &&
-        typeof r?.frequency === 'number' &&
-        typeof r?.name === 'string'
-    )
+    return stored
+      .filter(
+        (r) =>
+          typeof r?.id === 'string' &&
+          typeof r?.frequency === 'number' &&
+          typeof r?.name === 'string'
+      )
+      .map((r) => ({ ...r, fixed: r.fixed === true }))
   }
 
   function newId() {
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+  }
+
+  function formatTime(seconds: number) {
+    const s = Math.ceil(seconds)
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
   }
 
   const rangeError = $derived.by(() => {
@@ -87,6 +148,17 @@
     return null
   })
 
+  /** Ignore the second tap of a double tap on a button that just changed role */
+  function justStarted() {
+    return performance.now() - startedAt < DOUBLE_TAP_MS
+  }
+
+  function onStarted() {
+    audioActive = true
+    startedAt = performance.now()
+    wakeLock.acquire()
+  }
+
   async function startManual() {
     if (starting || !warningDismissed) return
     starting = true
@@ -95,11 +167,7 @@
     engine.enablePulse(pulseEnabled)
     const ok = await engine.start()
     starting = false
-    if (ok) {
-      audioActive = true
-      startedAt = performance.now()
-      wakeLock.acquire()
-    }
+    if (ok) onStarted()
   }
 
   function setFreq(hz: number) {
@@ -109,7 +177,7 @@
 
   function togglePulse() {
     pulseEnabled = !pulseEnabled
-    if (!rattleTestActive) engine.enablePulse(pulseEnabled)
+    if (testState === 'idle') engine.enablePulse(pulseEnabled)
   }
 
   function setPan(value: number) {
@@ -122,11 +190,7 @@
     engine.setVolume(volume)
   }
 
-  function selectRattle(r: RattleRecord) {
-    setFreq(r.frequency)
-  }
-
-  function goToManualWithRattle(r: RattleRecord) {
+  function playInManual(r: RattleRecord) {
     setRattleTestMode(false)
     setFreq(r.frequency)
   }
@@ -143,55 +207,107 @@
     rattleTestMode = enable
   }
 
-  async function startRattleTest() {
-    if (starting || rattleTestActive || !warningDismissed || rangeError) return
-    const min = rangeMin!
-    const max = rangeMax!
+  async function beginSweep(
+    lo: number,
+    hi: number,
+    speed: number,
+    loopSweep: boolean
+  ) {
+    if (starting || testState !== 'idle' || !warningDismissed) return
     starting = true
+    lastMark = null
     engine.enablePulse(false)
     engine.setPan(pan)
-    const ok = await engine.startSweep(min, max, sweepSpeed)
+    const ok = await engine.startSweep({ lo, hi, speed, loop: loopSweep })
     starting = false
     if (!ok) return
-    rattleTestActive = true
-    audioActive = true
-    startedAt = performance.now()
-    wakeLock.acquire()
+    testState = 'running'
+    onStarted()
     trackSweep()
+  }
+
+  function startRattleTest() {
+    if (rangeError) return
+    refine = null
+    beginSweep(rangeMin!, rangeMax!, sweepSpeed, loop)
+  }
+
+  function refineRattle(r: RattleRecord) {
+    const lo = Math.round(clampFreq(r.frequency - REFINE_SPAN))
+    const hi = Math.round(clampFreq(r.frequency + REFINE_SPAN))
+    refine = { lo, hi, name: r.name }
+    speedBeforeRefine = sweepSpeed
+    sweepSpeed = REFINE_SPEED
+    beginSweep(lo, hi, REFINE_SPEED, true)
   }
 
   /** Mirror the audio-clock sweep position into the UI */
   function trackSweep() {
     sweepCurrentFreq = engine.getSweepFrequency()
+    sweepDirection = engine.getSweepDirection()
     frameId = requestAnimationFrame(trackSweep)
   }
-
-  $effect(() => {
-    // Apply speed changes to a running sweep
-    const speed = sweepSpeed
-    if (rattleTestActive) engine.setSweepSpeed(speed)
-  })
 
   function stopAll() {
     cancelAnimationFrame(frameId)
     engine.stop()
-    rattleTestActive = false
+    if (refine) {
+      sweepSpeed = speedBeforeRefine
+      refine = null
+    }
+    testState = 'idle'
     audioActive = false
+    remaining = null
     wakeLock.release()
   }
 
-  /** Stop button handler: the Start button turns into Stop, so ignore an immediate second tap */
   function stopFromButton() {
-    if (performance.now() - startedAt < 400) return
-    stopAll()
+    if (!justStarted()) stopAll()
   }
 
-  function onRattleClick() {
-    if (!rattleTestActive) return
+  function addRecord(freq: number) {
+    rattleRecords.push({
+      id: newId(),
+      frequency: freq,
+      name: refine?.name ?? '',
+      fixed: false,
+    })
+    lastMark = { frequency: freq, count: (lastMark?.count ?? 0) + 1 }
+    navigator.vibrate?.(30)
+  }
+
+  function markRattle() {
+    if (testState !== 'running' || justStarted()) return
     // The tone that shook the rattle was playing a moment before the tap
-    const lookback = REACTION_TIME_S + engine.outputLatency
-    const freq = Math.round(engine.getSweepFrequency(lookback))
-    rattleRecords.push({ id: newId(), frequency: freq, name: '' })
+    const reaction = reactionMs !== null ? reactionMs / 1000 : REACTION_TIME_S
+    const lookback = reaction + engine.outputLatency
+    addRecord(Math.round(engine.getSweepFrequency(lookback)))
+  }
+
+  function holdSweep() {
+    if (testState !== 'running' || justStarted()) return
+    sweepCurrentFreq = engine.holdSweep()
+    lastMark = null
+    testState = 'holding'
+  }
+
+  function nudge(delta: number) {
+    const f = Math.round(
+      clampFreq(Math.round(engine.getSweepFrequency()) + delta)
+    )
+    engine.setFrequency(f)
+    sweepCurrentFreq = f
+  }
+
+  function saveHeld() {
+    // The user tuned this by ear, so no reaction-time correction
+    addRecord(Math.round(engine.getSweepFrequency()))
+  }
+
+  function resumeSweep() {
+    engine.resumeSweep()
+    lastMark = null
+    testState = 'running'
   }
 
   function clearRattleRecords() {
@@ -200,6 +316,11 @@
 
   function deleteRattle(id: string) {
     rattleRecords = rattleRecords.filter((r) => r.id !== id)
+  }
+
+  function toggleFixed(id: string) {
+    const r = rattleRecords.find((r) => r.id === id)
+    if (r) r.fixed = !r.fixed
   }
 </script>
 
@@ -233,27 +354,50 @@
   </div>
 {/if}
 
-<main class="app-main flex h-full flex-col overflow-y-auto bg-slate-950 p-4 text-slate-100">
+{#if settingsOpen}
+  <SettingsSheet
+    {engine}
+    bind:autoStopMin
+    bind:reactionMs
+    onBeforeCalibrate={stopAll}
+    onClose={() => (settingsOpen = false)}
+  />
+{/if}
+
+<main
+  class="app-main flex h-full flex-col overflow-y-auto bg-slate-950 p-4 text-slate-100"
+>
   <!-- Header -->
   <header class="mb-3 flex items-center justify-between gap-2">
-    <div class="text-left">
-      <h1 class="text-3xl font-bold text-slate-100">Rattle Finder</h1>
-      <p class="mt-2 text-sm text-slate-400">
+    <div class="min-w-0 text-left">
+      <h1 class="text-2xl font-bold text-slate-100 sm:text-3xl">
+        Rattle Finder
+      </h1>
+      <p class="mt-1 text-sm text-slate-400">
         Easiest way to find rattles in your vehicle
       </p>
     </div>
-    <a
-      class="shrink-0"
-      href="https://www.buymeacoffee.com/rattle.finder"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <img
-        src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-        alt="Buy Me A Coffee"
-        class="bmc-button-img"
-      />
-    </a>
+    <div class="flex shrink-0 items-center gap-1">
+      <a
+        href="https://www.buymeacoffee.com/rattle.finder"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+          alt="Buy Me A Coffee"
+          class="bmc-button-img"
+        />
+      </a>
+      <button
+        type="button"
+        class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800"
+        onclick={() => (settingsOpen = true)}
+        aria-label="Settings"
+      >
+        <Settings class="h-6 w-6" />
+      </button>
+    </div>
   </header>
 
   <!-- Mode toggle -->
@@ -305,17 +449,27 @@
       bind:rangeMin
       bind:rangeMax
       bind:sweepSpeed
+      bind:loop
       bind:rattleRecords
-      {sweepCurrentFreq}
-      {rattleTestActive}
+      {testState}
       {starting}
       {rangeError}
-      {startRattleTest}
-      stopRattleTest={stopFromButton}
-      {onRattleClick}
-      {clearRattleRecords}
-      onDeleteRattle={deleteRattle}
-      onSelectRattleForManual={goToManualWithRattle}
+      {sweepCurrentFreq}
+      {sweepDirection}
+      {refine}
+      {lastMark}
+      onStart={startRattleTest}
+      onStop={stopFromButton}
+      onHold={holdSweep}
+      onResume={resumeSweep}
+      onNudge={nudge}
+      onSaveHeld={saveHeld}
+      onMark={markRattle}
+      onClear={clearRattleRecords}
+      onDelete={deleteRattle}
+      onToggleFixed={toggleFixed}
+      onRefine={refineRattle}
+      onSelectForManual={playInManual}
     />
   {:else}
     <ManualPanel
@@ -329,11 +483,17 @@
       {setFreq}
       {togglePulse}
       {setPan}
-      onSelectRattle={selectRattle}
+      onSelectRattle={(r) => setFreq(r.frequency)}
       onStart={startManual}
       onStop={stopFromButton}
       onOpenRattleTest={() => setRattleTestMode(true)}
     />
+  {/if}
+
+  {#if remaining !== null}
+    <p class="mt-2 text-center text-xs text-slate-500">
+      Auto-stop in {formatTime(remaining)}
+    </p>
   {/if}
 </main>
 
@@ -344,8 +504,8 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
   .bmc-button-img {
-    height: 40px !important;
-    width: 145px !important;
+    height: 36px !important;
+    width: 130px !important;
   }
   @media (max-width: 400px) {
     .bmc-button-img {

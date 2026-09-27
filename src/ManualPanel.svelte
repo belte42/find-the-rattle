@@ -1,11 +1,7 @@
 <script lang="ts">
   import { Plus, Minus, Power, HeartPulse } from 'lucide-svelte'
-  import {
-    FREQ_MIN,
-    FREQ_MAX,
-    MANUAL_FREQ_STEP,
-    type RattleRecord,
-  } from './consts'
+  import { autoRepeat } from './lib/autoRepeat'
+  import { FREQ_MIN, FREQ_MAX, type RattleRecord } from './consts'
 
   interface Props {
     frequency: number
@@ -56,9 +52,9 @@
 <div class="mb-6 flex items-center gap-3">
   <button
     type="button"
-    class="btn-tactile flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
-    onclick={() => setFreq(frequency - MANUAL_FREQ_STEP)}
-    aria-label="Decrease frequency by {MANUAL_FREQ_STEP} Hz"
+    class="btn-tactile flex h-14 w-14 shrink-0 select-none items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
+    use:autoRepeat={() => setFreq(frequency - 1)}
+    aria-label="Down 1 Hz (hold to repeat)"
   >
     <Minus class="h-7 w-7" />
   </button>
@@ -80,9 +76,9 @@
   </div>
   <button
     type="button"
-    class="btn-tactile flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
-    onclick={() => setFreq(frequency + MANUAL_FREQ_STEP)}
-    aria-label="Increase frequency by {MANUAL_FREQ_STEP} Hz"
+    class="btn-tactile flex h-14 w-14 shrink-0 select-none items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
+    use:autoRepeat={() => setFreq(frequency + 1)}
+    aria-label="Up 1 Hz (hold to repeat)"
   >
     <Plus class="h-7 w-7" />
   </button>
@@ -141,10 +137,14 @@
           class="btn-tactile rounded-xl border-2 py-4 hover:border-slate-500 hover:bg-slate-700 {r.frequency ===
           frequency
             ? 'border-amber-500 bg-slate-800 text-amber-300'
-            : 'border-slate-600 bg-slate-800 text-slate-200'}"
+            : 'border-slate-600 bg-slate-800 text-slate-200'} {r.fixed
+            ? 'opacity-50'
+            : ''}"
           onclick={() => onSelectRattle(r)}
         >
-          <span class="font-semibold">{r.name.trim() || `${r.frequency} Hz`}</span>
+          <span class="font-semibold"
+            >{r.fixed ? '✓ ' : ''}{r.name.trim() || `${r.frequency} Hz`}</span
+          >
           {#if r.name.trim()}
             <span class="block text-sm text-slate-500">{r.frequency} Hz</span>
           {/if}
