@@ -1,55 +1,47 @@
 <script lang="ts">
-  import { Plus, Minus, Power, HeartPulse, CircleAlert } from 'lucide-svelte'
+  import { Plus, Minus, Power, HeartPulse } from 'lucide-svelte'
   import {
-    MIN_RANGE,
-    MAX_RANGE,
-    MIN_SWEEP_SPEED,
-    MAX_SWEEP_SPEED,
+    FREQ_MIN,
+    FREQ_MAX,
     MANUAL_FREQ_STEP,
+    type RattleRecord,
   } from './consts'
 
-  interface RattleRecord {
-    frequency: number
-    name: string
-  }
-
   interface Props {
-    frequency?: number
-    pulseEnabled?: boolean
-    pan?: number
-    audioActive?: boolean
-    warningDismissed?: boolean
-    rattleRecords?: RattleRecord[]
+    frequency: number
+    pulseEnabled: boolean
+    pan: number
+    audioActive: boolean
+    starting: boolean
+    warningDismissed: boolean
+    rattleRecords: RattleRecord[]
     setFreq: (hz: number) => void
-    togglePulse?: () => void
-    onPanSlider?: (e: Event) => void
-    onSelectRattle?: (r: RattleRecord) => void
-    ensureStarted?: () => Promise<boolean>
-    kill?: () => void
-    onOpenRattleTest?: () => void
+    togglePulse: () => void
+    setPan: (value: number) => void
+    onSelectRattle: (r: RattleRecord) => void
+    onStart: () => void
+    onStop: () => void
+    onOpenRattleTest: () => void
   }
 
   let {
-    frequency = $bindable(100),
-    pulseEnabled = false,
-    pan = 0,
-    audioActive = false,
-    warningDismissed = false,
-    rattleRecords = [],
+    frequency,
+    pulseEnabled,
+    pan,
+    audioActive,
+    starting,
+    warningDismissed,
+    rattleRecords,
     setFreq,
     togglePulse,
-    onPanSlider,
+    setPan,
     onSelectRattle,
-    ensureStarted,
-    kill,
+    onStart,
+    onStop,
     onOpenRattleTest,
   }: Props = $props()
 
-  function panLabel() {
-    if (pan <= -0.5) return 'L'
-    if (pan >= 0.5) return 'R'
-    return 'C'
-  }
+  const panLabel = $derived(pan <= -0.5 ? 'L' : pan >= 0.5 ? 'R' : 'C')
 </script>
 
 <!-- Frequency display -->
@@ -60,41 +52,40 @@
   </p>
 </div>
 
-<!-- Frequency controls: vertical slider + +/- -->
-
-<div class="mb-6 flex items-center justify-center gap-4">
+<!-- Frequency controls: -/+ around a slider -->
+<div class="mb-6 flex items-center gap-3">
   <button
     type="button"
-    class="btn-tactile flex h-14 w-14 items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
+    class="btn-tactile flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
     onclick={() => setFreq(frequency - MANUAL_FREQ_STEP)}
+    aria-label="Decrease frequency by {MANUAL_FREQ_STEP} Hz"
   >
     <Minus class="h-7 w-7" />
   </button>
-  <div class="flex h-32 flex-col items-center justify-center gap-2">
-    <span class="text-xs text-slate-500">500</span>
+  <div class="flex min-w-0 flex-1 flex-col gap-1">
     <input
       type="range"
-      min={MIN_RANGE}
-      max={MAX_RANGE}
+      min={FREQ_MIN}
+      max={FREQ_MAX}
       step="1"
       value={frequency}
-      oninput={(e) => {
-        setFreq(Number(e.currentTarget.value))
-      }}
+      oninput={(e) => setFreq(Number(e.currentTarget.value))}
       class="w-full cursor-pointer accent-slate-400"
-      aria-label="Frequency sweep"
+      aria-label="Frequency"
     />
-    <span class="text-xs text-slate-500">20</span>
+    <div class="flex justify-between text-xs text-slate-500">
+      <span>{FREQ_MIN}</span>
+      <span>{FREQ_MAX}</span>
+    </div>
   </div>
-  <div class="flex flex-col gap-2">
-    <button
-      type="button"
-      class="btn-tactile flex h-14 w-14 items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
-      onclick={() => setFreq(frequency + MANUAL_FREQ_STEP)}
-    >
-      <Plus class="h-7 w-7" />
-    </button>
-  </div>
+  <button
+    type="button"
+    class="btn-tactile flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
+    onclick={() => setFreq(frequency + MANUAL_FREQ_STEP)}
+    aria-label="Increase frequency by {MANUAL_FREQ_STEP} Hz"
+  >
+    <Plus class="h-7 w-7" />
+  </button>
 </div>
 
 <!-- Pulse mode toggle -->
@@ -104,6 +95,7 @@
     class="btn-tactile flex items-center gap-2 rounded-xl px-6 {pulseEnabled
       ? 'border-2 border-amber-500 bg-amber-500/20 text-amber-400'
       : 'border-2 border-slate-600 bg-slate-800 text-slate-400'}"
+    aria-pressed={pulseEnabled}
     onclick={togglePulse}
   >
     <HeartPulse class="h-6 w-6" />
@@ -113,7 +105,7 @@
 
 <!-- Panning -->
 <div class="mb-6 px-2">
-  <p class="mb-2 text-center text-sm text-slate-500">Pan: {panLabel()}</p>
+  <p class="mb-2 text-center text-sm text-slate-500">Pan: {panLabel}</p>
   <div class="flex items-center gap-2">
     <span class="text-xs text-slate-600">L</span>
     <input
@@ -122,7 +114,7 @@
       max="1"
       step="0.01"
       value={pan}
-      oninput={onPanSlider}
+      oninput={(e) => setPan(Number(e.currentTarget.value))}
       class="flex-1 cursor-pointer accent-slate-400"
       aria-label="Stereo pan"
     />
@@ -134,32 +126,25 @@
 <div class="mb-6">
   <p class="mb-2 text-sm text-slate-500">Saved rattles</p>
   {#if rattleRecords.length === 0}
-    {#if onOpenRattleTest}
-      <button
-        type="button"
-        class="btn-tactile w-full rounded-xl border-2 border-slate-600 bg-slate-800 px-4 py-3 text-center text-sm text-slate-200 hover:border-slate-500 hover:bg-slate-700"
-        onclick={onOpenRattleTest}
-      >
-        Rattle Test
-      </button>
-    {:else}
-      <p
-        class="rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-center text-sm text-slate-500"
-      >
-        Run a rattle test and tap “Rattle!” to save frequencies here.
-      </p>
-    {/if}
+    <button
+      type="button"
+      class="btn-tactile w-full rounded-xl border-2 border-slate-600 bg-slate-800 px-4 py-3 text-center text-sm text-slate-200 hover:border-slate-500 hover:bg-slate-700"
+      onclick={onOpenRattleTest}
+    >
+      None yet — run a Rattle Test to find them
+    </button>
   {:else}
     <div class="grid grid-cols-2 gap-3">
-      {#each rattleRecords as r}
+      {#each rattleRecords as r (r.id)}
         <button
           type="button"
-          class="btn-tactile rounded-xl border-2 border-slate-600 bg-slate-800 py-4 text-slate-200 hover:border-slate-500 hover:bg-slate-700"
-          onclick={() => onSelectRattle?.(r)}
+          class="btn-tactile rounded-xl border-2 py-4 hover:border-slate-500 hover:bg-slate-700 {r.frequency ===
+          frequency
+            ? 'border-amber-500 bg-slate-800 text-amber-300'
+            : 'border-slate-600 bg-slate-800 text-slate-200'}"
+          onclick={() => onSelectRattle(r)}
         >
-          <span class="font-semibold"
-            >{r.name.trim() || `${r.frequency} Hz`}</span
-          >
+          <span class="font-semibold">{r.name.trim() || `${r.frequency} Hz`}</span>
           {#if r.name.trim()}
             <span class="block text-sm text-slate-500">{r.frequency} Hz</span>
           {/if}
@@ -169,17 +154,15 @@
   {/if}
 </div>
 
-<!-- Start / Kill -->
-<div class="flex flex-col gap-3">
-  <button
-    type="button"
-    class="btn-tactile w-full rounded-xl border-2 {audioActive
-      ? 'border-red-600 bg-red-600 py-4 text-white hover:border-red-500 hover:bg-red-500'
-      : 'border-emerald-600 bg-emerald-600/20 py-4 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-500/30'}"
-    onclick={audioActive ? kill : ensureStarted}
-    disabled={!warningDismissed}
-  >
-    <Power class="mr-2 inline-block h-5 w-5" />
-    {audioActive ? 'Stop' : 'Start'}
-  </button>
-</div>
+<!-- Start / Stop -->
+<button
+  type="button"
+  class="btn-tactile w-full rounded-xl border-2 py-4 disabled:opacity-50 {audioActive
+    ? 'border-red-600 bg-red-600 text-white hover:border-red-500 hover:bg-red-500'
+    : 'border-emerald-600 bg-emerald-600/20 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-500/30'}"
+  onclick={audioActive ? onStop : onStart}
+  disabled={!warningDismissed || starting}
+>
+  <Power class="mr-2 inline-block h-5 w-5" />
+  {audioActive ? 'Stop' : 'Start'}
+</button>

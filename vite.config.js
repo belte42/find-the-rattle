@@ -4,7 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Served from https://belte42.github.io/rattle-finder/ in production
+  base: command === 'build' ? '/rattle-finder/' : '/',
   plugins: [
     tailwindcss(),
     svelte(),
@@ -19,14 +21,10 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: '/vite.svg',
-            sizes: '192x192',
+            src: 'icon.svg',
+            sizes: 'any',
             type: 'image/svg+xml',
-          },
-          {
-            src: '/vite.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
+            purpose: 'any maskable',
           },
         ],
       },
@@ -35,4 +33,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))
