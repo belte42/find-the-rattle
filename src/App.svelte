@@ -28,7 +28,9 @@
   import ManualPanel from './ManualPanel.svelte'
   import RattleTestPanel from './RattleTestPanel.svelte'
   import SettingsSheet from './SettingsSheet.svelte'
+  import HowTo from './HowTo.svelte'
 
+  // Storage keys keep the old project name so existing users keep their data
   const WARNING_KEY = 'rattle-finder-warning-dismissed'
   const RECORDS_KEY = 'rattle-finder-records'
   const VOLUME_KEY = 'rattle-finder-volume'
@@ -371,10 +373,10 @@
   <header class="mb-3 flex items-center justify-between gap-2">
     <div class="min-w-0 text-left">
       <h1 class="text-2xl font-bold text-slate-100 sm:text-3xl">
-        Rattle Finder
+        Find The Rattle
       </h1>
       <p class="mt-1 text-sm text-slate-400">
-        Easiest way to find rattles in your vehicle
+        Find rattles and buzzes in your car
       </p>
     </div>
     <div class="flex shrink-0 items-center gap-1">
@@ -494,6 +496,10 @@
     <p class="mt-2 text-center text-xs text-slate-500">
       Auto-stop in {formatTime(remaining)}
     </p>
+  {/if}
+
+  {#if !audioActive}
+    <HowTo />
   {/if}
 </main>
 

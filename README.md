@@ -1,4 +1,4 @@
-# Rattle Finder
+# Find The Rattle
 
 **Find the rattles and buzzes in your car using your own speakers.**
 
@@ -6,7 +6,7 @@
 browser on your phone, with nothing to install and no account.
 
 Most interior rattles are resonances: a loose panel, clip, or wire that vibrates
-at one particular frequency. Rattle Finder plays low-frequency test tones
+at one particular frequency. Find The Rattle plays low-frequency test tones
 through your car's speakers (Bluetooth or aux) so you can make the rattle happen
 on demand while parked, then track it down by hand.
 

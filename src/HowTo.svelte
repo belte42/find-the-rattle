@@ -1,0 +1,82 @@
+<script lang="ts">
+  import { ChevronDown } from 'lucide-svelte'
+</script>
+
+<details class="group mt-6 rounded-xl border border-slate-800 bg-slate-900/40">
+  <summary
+    class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-slate-300"
+  >
+    How to find a rattle in your car
+    <ChevronDown class="h-4 w-4 transition-transform group-open:rotate-180" />
+  </summary>
+  <div class="space-y-4 px-4 pb-4 text-sm leading-relaxed text-slate-400">
+    <p>
+      Most interior rattles and buzzes are resonances: a loose trim panel, clip,
+      cable or bracket that vibrates at one particular frequency. Find The
+      Rattle plays low-frequency test tones through your car's speakers, so you
+      can make the rattle happen on demand while parked and track it down by
+      hand.
+    </p>
+    <ol class="list-decimal space-y-2 pl-5">
+      <li>
+        Park somewhere quiet and connect your phone to the car stereo over
+        Bluetooth or aux.
+      </li>
+      <li>
+        Start with the volume low and raise it slowly until something starts to
+        buzz. Loud isn't better.
+      </li>
+      <li>
+        In <strong class="text-slate-300">Rattle Test</strong>, start a sweep
+        and tap the big pad whenever you hear a rattle. The frequency is saved,
+        corrected for your reaction time.
+      </li>
+      <li>
+        Press <strong class="text-slate-300">Hold</strong> to keep the tone on
+        that frequency and nudge it up or down until the rattle is loudest.
+      </li>
+      <li>
+        Press on door cards, dash trim and panels until the noise stops — that's
+        the culprit. Name it, then mark it fixed once it's sorted.
+      </li>
+    </ol>
+    <div>
+      <p class="mb-1 font-semibold text-slate-300">Tips</p>
+      <ul class="list-disc space-y-1 pl-5">
+        <li>
+          Use <strong class="text-slate-300">Manual</strong> mode with pulse or
+          left/right pan to work out which side of the car it's on.
+        </li>
+        <li>
+          Common culprits: door cards, dashboard and A-pillar trim, seat belt
+          buckles, sunglasses holders, the rear parcel shelf, number-plate frames
+          and loose items in door pockets.
+        </li>
+        <li>
+          Many car speakers produce little below about 35 Hz, so a rattle there
+          may only show up in cars with a subwoofer.
+        </li>
+        <li>
+          Measure your reaction time in Settings, through the car speakers, for
+          more accurate results.
+        </li>
+      </ul>
+    </div>
+    <p class="text-xs text-slate-500">
+      Free and open source ·
+      <a
+        class="underline hover:text-slate-300"
+        href="https://github.com/belte42/rattle-finder"
+        target="_blank"
+        rel="noopener noreferrer">Source code</a
+      >
+      ·
+      <a
+        class="underline hover:text-slate-300"
+        href="https://github.com/belte42/rattle-finder/issues"
+        target="_blank"
+        rel="noopener noreferrer">Report a problem or suggest a feature</a
+      >
+    </p>
+  </div>
+</details>

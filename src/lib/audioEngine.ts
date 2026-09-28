@@ -1,5 +1,5 @@
 /**
- * Car Rattle Finder - Web Audio API Engine
+ * Find The Rattle - Web Audio API Engine
  *
  * Graph: oscillator -> envelope -> pulse -> volume -> panner -> destination
  *
