@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
-  import { X } from 'lucide-svelte'
   import type { AudioEngine, Beep } from './lib/audioEngine'
   import { AUTO_STOP_OPTIONS, REACTION_TIME_S } from './consts'
   import { track } from './lib/analytics'
@@ -95,35 +94,36 @@
 </script>
 
 <div
-  class="fixed inset-0 z-40 flex items-end justify-center bg-slate-950/80 sm:items-center"
+  class="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center"
   role="presentation"
   onclick={(e) => e.target === e.currentTarget && close()}
 >
   <div
-    class="sheet w-full max-w-md rounded-t-2xl border border-slate-700 bg-slate-900 p-5 sm:rounded-2xl"
+    class="sheet w-full max-w-md rounded-t-[14px] bg-ios-card px-4 pt-2 sm:rounded-[14px]"
     role="dialog"
     aria-modal="true"
     aria-labelledby="settings-title"
   >
-    <div class="mb-4 flex items-center justify-between">
-      <h2 id="settings-title" class="text-lg font-bold">Settings</h2>
+    <!-- Grabber + navigation bar -->
+    <div class="mx-auto mb-1 h-[5px] w-9 rounded-full bg-ios-label3"></div>
+    <div class="relative mb-4 flex h-11 items-center justify-center">
+      <h2 id="settings-title" class="text-body font-semibold">Settings</h2>
       <button
         type="button"
-        class="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800"
+        class="absolute right-0 px-1 py-2 text-body font-semibold text-ios-blue active:opacity-50"
         onclick={close}
-        aria-label="Close settings"
       >
-        <X class="h-5 w-5" />
+        Done
       </button>
     </div>
 
     {#if calibrating}
-      <p class="mb-3 text-sm text-slate-400">
+      <p class="mb-3 text-center text-subhead text-ios-label2">
         Tap the pad as soon as you hear each beep ({results.length}/{TRIALS}).
       </p>
       <button
         type="button"
-        class="mb-3 flex h-48 w-full select-none items-center justify-center rounded-2xl border-2 border-amber-500 bg-amber-500/15 text-xl font-bold text-amber-300"
+        class="mb-3 flex h-52 w-full items-center justify-center rounded-[20px] bg-ios-orange/15 text-title3 font-semibold text-ios-orange select-none active:bg-ios-orange/30"
         style="touch-action: none"
         onpointerdown={onTap}
       >
@@ -131,22 +131,18 @@
       </button>
       <button
         type="button"
-        class="btn-tactile w-full border border-slate-600 text-slate-300"
+        class="ios-btn w-full text-ios-blue"
         onclick={cancelCalibration}
       >
         Cancel
       </button>
     {:else}
       <!-- Auto-stop -->
-      <p class="mb-2 text-sm font-medium text-slate-300">Auto-stop</p>
-      <div class="mb-1 grid grid-cols-4 gap-2">
+      <p class="ios-section-header">Auto-stop</p>
+      <div class="ios-seg">
         {#each AUTO_STOP_OPTIONS as min}
           <button
             type="button"
-            class="rounded-lg border-2 py-2 text-sm font-semibold {autoStopMin ===
-            min
-              ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300'
-              : 'border-slate-700 text-slate-400'}"
             aria-pressed={autoStopMin === min}
             onclick={() => {
               autoStopMin = min
@@ -157,54 +153,55 @@
           </button>
         {/each}
       </div>
-      <p class="mb-5 text-xs text-slate-500">
+      <p class="ios-section-footer mb-6">
         Stops the tone automatically, in case you forget it's on.
       </p>
 
       <!-- Reaction time -->
-      <p class="mb-1 text-sm font-medium text-slate-300">Reaction delay</p>
-      <p class="mb-2 text-sm text-slate-400">
-        {#if reactionMs !== null}
-          {reactionMs} ms <span class="text-slate-500">(measured)</span>
-        {:else}
-          {REACTION_TIME_S * 1000} ms <span class="text-slate-500">(default estimate)</span>
-        {/if}
-      </p>
-      <p class="mb-3 text-xs text-slate-500">
-        Subtracted when you tap during a sweep, so the saved frequency matches
-        what caused the rattle. Measure it in the car, through the same speakers
-        or Bluetooth you'll test with.
-      </p>
-      {#if message}
-        <p class="mb-3 text-sm text-emerald-400">{message}</p>
-      {/if}
-      <div class="flex gap-2">
+      <p class="ios-section-header">Reaction delay</p>
+      <div class="ios-group bg-ios-card2!">
+        <div class="ios-row">
+          <span class="flex-1">Delay</span>
+          <span class="text-ios-label2 tabular-nums">
+            {reactionMs ?? REACTION_TIME_S * 1000} ms · {reactionMs !== null
+              ? 'measured'
+              : 'default'}
+          </span>
+        </div>
         <button
           type="button"
-          class="btn-tactile flex-1 border-2 border-amber-500 bg-amber-500/15 text-amber-300"
+          class="ios-row w-full text-left text-ios-blue"
           onclick={startCalibration}
         >
-          Measure
+          Measure reaction time
         </button>
         {#if reactionMs !== null}
           <button
             type="button"
-            class="btn-tactile flex-1 border border-slate-600 text-slate-300"
+            class="ios-row w-full text-left text-ios-red"
             onclick={() => {
               reactionMs = null
               message = ''
             }}
           >
-            Use default
+            Reset to default
           </button>
         {/if}
       </div>
+      {#if message}
+        <p class="ios-section-footer text-ios-green!">{message}</p>
+      {/if}
+      <p class="ios-section-footer">
+        Subtracted when you tap during a sweep, so the saved frequency matches
+        what caused the rattle. Measure it in the car, through the same speakers
+        or Bluetooth you'll test with.
+      </p>
     {/if}
   </div>
 </div>
 
 <style>
   .sheet {
-    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
 </style>

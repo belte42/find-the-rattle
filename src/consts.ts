@@ -32,3 +32,8 @@ export type TestState = 'idle' | 'running' | 'holding'
 export function clampFreq(hz: number): number {
   return Math.max(FREQ_MIN, Math.min(FREQ_MAX, hz))
 }
+
+/** Position of `value` within [min, max] as a CSS percentage (for slider fills) */
+export function percent(value: number, min: number, max: number): string {
+  return `${((value - min) / (max - min)) * 100}%`
+}

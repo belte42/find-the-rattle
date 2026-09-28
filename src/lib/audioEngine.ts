@@ -393,7 +393,11 @@ export class AudioEngine {
     const now = ctx.currentTime
     let stopAt = this.autoStopAt ?? Infinity
     if (this.sweep) {
-      const sweepEnd = this.scheduleSweepRamps(this.sweep, nodes.osc.frequency, now)
+      const sweepEnd = this.scheduleSweepRamps(
+        this.sweep,
+        nodes.osc.frequency,
+        now
+      )
       stopAt = Math.min(stopAt, sweepEnd)
     }
 
@@ -459,7 +463,8 @@ export class AudioEngine {
     const data = buffer.getChannelData(0)
     const on = Math.floor(length / 2)
     const ramp = Math.round(RAMP * ctx.sampleRate)
-    for (let i = 0; i < on; i++) data[i] = Math.min(1, i / ramp, (on - i) / ramp)
+    for (let i = 0; i < on; i++)
+      data[i] = Math.min(1, i / ramp, (on - i) / ramp)
     this.gateBuffer = buffer
     return buffer
   }

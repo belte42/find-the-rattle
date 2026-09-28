@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
   import {
-    CircleAlert,
+    Coffee,
     Settings,
     SlidersHorizontal,
     TestTubes,
-    Volume1,
+    Volume,
+    Volume2,
   } from 'lucide-svelte'
   import { AudioEngine } from './lib/audioEngine'
   import * as wakeLock from './lib/wakeLock'
@@ -23,6 +24,7 @@
     REFINE_SPAN,
     REFINE_SPEED,
     clampFreq,
+    percent,
     type RattleRecord,
     type TestState,
   } from './consts'
@@ -364,27 +366,29 @@
 </script>
 
 {#if !warningDismissed}
+  <!-- iOS-style alert -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-6"
-    role="dialog"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
+    role="alertdialog"
     aria-modal="true"
     aria-labelledby="warning-title"
+    aria-describedby="warning-text"
   >
     <div
-      class="max-w-md rounded-xl border border-slate-700 bg-slate-900 p-6 text-center shadow-2xl"
+      class="w-full max-w-[300px] overflow-hidden rounded-[14px] bg-[rgb(44_44_46/0.92)] text-center backdrop-blur-xl"
     >
-      <CircleAlert class="mx-auto mb-4 h-16 w-16 text-amber-500" />
-      <h2 id="warning-title" class="mb-2 text-xl font-bold text-slate-100">
-        Volume Warning
-      </h2>
-      <p class="mb-6 text-slate-300">
-        This app plays test tones for locating car rattles. Use responsibly.
-        Start at low volume and avoid prolonged exposure at high levels. Park
-        safely before using.
-      </p>
+      <div class="px-4 pt-5 pb-4">
+        <h2 id="warning-title" class="mb-1 text-body font-semibold">
+          Mind the volume
+        </h2>
+        <p id="warning-text" class="text-footnote">
+          This app plays test tones for locating rattles. Start at a low volume
+          and avoid long exposure at high levels. Only use it while parked.
+        </p>
+      </div>
       <button
         type="button"
-        class="btn-tactile w-full bg-emerald-600 text-white hover:bg-emerald-500"
+        class="h-11 w-full border-t-[0.5px] border-ios-sep text-body font-semibold text-ios-blue active:bg-white/10"
         onclick={dismissWarning}
       >
         I Understand
@@ -408,76 +412,67 @@
   class="page flex h-full justify-center md:items-center md:overflow-y-auto md:p-8 lg:items-start lg:gap-16 xl:gap-24"
 >
   {#if isDesktop}
-    <div class="min-w-0 max-w-xl flex-1 pt-6">
+    <div class="max-w-xl min-w-0 flex-1 pt-6">
       <DesktopIntro />
     </div>
   {/if}
 
   <main
-    class="app-main flex h-full w-full flex-col overflow-y-auto bg-slate-950 p-4 text-slate-100 md:h-[min(880px,calc(100dvh-4rem))] md:w-[420px] md:shrink-0 md:rounded-[2rem] md:border md:border-slate-800 md:shadow-2xl md:shadow-black/60 lg:sticky lg:top-0"
+    class="app-main flex h-full w-full flex-col overflow-y-auto bg-ios-bg px-4 md:h-[min(880px,calc(100dvh-4rem))] md:w-[420px] md:shrink-0 md:rounded-[2.5rem] md:border md:border-ios-sep md:shadow-2xl md:shadow-black lg:sticky lg:top-0"
   >
-    <!-- Header -->
-    <header class="mb-3 flex items-center justify-between gap-2">
-      <div class="min-w-0 text-left">
-        <h1 class="text-2xl font-bold text-slate-100">
-          Find The Rattle
-        </h1>
-        <p class="mt-1 text-sm text-slate-400">
-          Find rattles and buzzes in your car
-        </p>
+    <!-- Large title with trailing icon buttons -->
+    <header class="mb-4">
+      <div class="flex items-center justify-between gap-2">
+        <h1 class="text-large-title min-w-0 truncate">Find The Rattle</h1>
+        <div class="-mr-2 flex shrink-0">
+          <a
+            class="flex h-11 w-11 items-center justify-center rounded-full text-ios-yellow active:opacity-50"
+            href="https://www.buymeacoffee.com/rattle.finder"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Buy me a coffee"
+            title="Buy me a coffee"
+          >
+            <Coffee class="h-6 w-6" />
+          </a>
+          <button
+            type="button"
+            class="flex h-11 w-11 items-center justify-center rounded-full text-ios-blue active:opacity-50"
+            onclick={() => (settingsOpen = true)}
+            aria-label="Settings"
+          >
+            <Settings class="h-6 w-6" />
+          </button>
+        </div>
       </div>
-      <div class="flex shrink-0 items-center gap-1">
-        <a
-          href="https://www.buymeacoffee.com/rattle.finder"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img
-            src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-            alt="Buy Me A Coffee"
-            class="bmc-button-img"
-          />
-        </a>
-        <button
-          type="button"
-          class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800"
-          onclick={() => (settingsOpen = true)}
-          aria-label="Settings"
-        >
-          <Settings class="h-6 w-6" />
-        </button>
-      </div>
+      <p class="text-subhead text-ios-label2">
+        Find rattles and buzzes in your car
+      </p>
     </header>
 
-    <!-- Mode toggle -->
-    <div class="mb-4 flex rounded-lg border border-slate-700 bg-slate-900 p-1">
+    <!-- Mode -->
+    <div class="ios-seg mb-3">
       <button
         type="button"
-        class="btn-tactile flex flex-1 items-center justify-center gap-2 rounded-md py-2 {!rattleTestMode
-          ? 'bg-slate-700 text-slate-100'
-          : 'text-slate-500'}"
+        class="min-h-9! text-subhead!"
         aria-pressed={!rattleTestMode}
         onclick={() => setRattleTestMode(false)}
       >
-        <SlidersHorizontal class="h-5 w-5" />
-        <span>Manual</span>
+        <SlidersHorizontal class="h-4 w-4" /> Manual
       </button>
       <button
         type="button"
-        class="btn-tactile flex flex-1 items-center justify-center gap-2 rounded-md py-2 {rattleTestMode
-          ? 'bg-slate-700 text-slate-100'
-          : 'text-slate-500'}"
+        class="min-h-9! text-subhead!"
         aria-pressed={rattleTestMode}
         onclick={() => setRattleTestMode(true)}
       >
-        <TestTubes class="h-5 w-5" />
-        <span>Rattle Test</span>
+        <TestTubes class="h-4 w-4" /> Rattle Test
       </button>
     </div>
 
     <!-- Volume (shared by both modes) -->
-    <div class="mb-4 flex items-center gap-3 px-2">
-      <Volume1 class="h-5 w-5 shrink-0 text-slate-500" />
+    <div class="mb-2 flex items-center gap-3 px-1">
+      <Volume class="h-5 w-5 shrink-0 text-ios-label2" aria-hidden="true" />
       <input
         type="range"
         min="0"
@@ -485,12 +480,12 @@
         step="0.01"
         value={volume}
         oninput={(e) => setVolume(Number(e.currentTarget.value))}
-        class="flex-1 cursor-pointer accent-slate-400"
+        class="ios-range min-w-0 flex-1"
+        style="--pct: {percent(volume, 0, 1)}"
         aria-label="Volume"
+        aria-valuetext="{Math.round(volume * 100)}%"
       />
-      <span class="w-10 text-right text-xs tabular-nums text-slate-500">
-        {Math.round(volume * 100)}%
-      </span>
+      <Volume2 class="h-5 w-5 shrink-0 text-ios-label2" aria-hidden="true" />
     </div>
 
     {#if rattleTestMode}
@@ -540,7 +535,7 @@
     {/if}
 
     <!-- Always rendered (fixed height) so the Start/Stop button doesn't jump when playback starts -->
-    <p class="mt-2 h-4 text-center text-xs text-slate-500">
+    <p class="mt-2 h-4 text-center text-caption text-ios-label2">
       {remaining !== null ? `Auto-stop in ${formatTime(remaining)}` : ''}
     </p>
 
@@ -554,23 +549,17 @@
 <style>
   @media (min-width: 768px) {
     .page {
-      background: radial-gradient(ellipse at top, #0f172a 0%, #020617 60%);
+      background: radial-gradient(ellipse at top, #1c1c1e 0%, #000 60%);
     }
   }
   /* Keep content clear of the notch / home indicator in standalone mode */
   .app-main {
-    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-top: max(0.75rem, env(safe-area-inset-top));
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
-  .bmc-button-img {
-    height: 36px !important;
-    width: 130px !important;
-  }
-  /* Small phones, and the fixed-width app card on larger screens */
-  @media (max-width: 400px), (min-width: 768px) {
-    .bmc-button-img {
-      height: 30px !important;
-      width: 109px !important;
+  @media (min-width: 768px) {
+    .app-main {
+      padding-top: 1.25rem;
     }
   }
 </style>

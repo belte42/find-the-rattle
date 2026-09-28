@@ -20,12 +20,12 @@
       buzz. Loud isn't better.
     </li>
     <li>
-      In <strong class="text-slate-300">Rattle Test</strong>, start a sweep and
+      In <strong class="text-ios-label">Rattle Test</strong>, start a sweep and
       tap the big pad whenever you hear a rattle. The frequency is saved,
       corrected for your reaction time.
     </li>
     <li>
-      Press <strong class="text-slate-300">Hold</strong> to keep the tone on that
+      Press <strong class="text-ios-label">Hold</strong> to keep the tone on that
       frequency and nudge it up or down until the rattle is loudest.
     </li>
     <li>
@@ -34,10 +34,10 @@
     </li>
   </ol>
   <div>
-    <p class="mb-1 font-semibold text-slate-300">Tips</p>
+    <p class="mb-1 font-semibold text-ios-label">Tips</p>
     <ul class="list-disc space-y-1 pl-5">
       <li>
-        Use <strong class="text-slate-300">Manual</strong> mode with pulse or left/right
+        Use <strong class="text-ios-label">Manual</strong> mode with pulse or left/right
         pan to work out which side of the car it's on.
       </li>
       <li>
@@ -55,17 +55,17 @@
       </li>
     </ul>
   </div>
-  <p class="text-xs text-slate-500">
+  <p class="text-footnote text-ios-label2">
     Free and open source ·
     <a
-      class="underline hover:text-slate-300"
+      class="text-ios-blue"
       href="https://github.com/belte42/find-the-rattle"
       target="_blank"
       rel="noopener noreferrer">Source code</a
     >
     ·
     <a
-      class="underline hover:text-slate-300"
+      class="text-ios-blue"
       href="https://github.com/belte42/find-the-rattle/issues"
       target="_blank"
       rel="noopener noreferrer">Report a problem or suggest a feature</a
@@ -74,23 +74,23 @@
 {/snippet}
 
 {#if expanded}
-  <section class="space-y-4 text-[15px] leading-relaxed text-slate-400">
-    <h3 class="text-lg font-semibold text-slate-200">
+  <section class="space-y-4 text-[15px] leading-relaxed text-ios-label2">
+    <h3 class="text-title3 font-semibold text-ios-label">
       How to find a rattle in your car
     </h3>
     {@render guide()}
   </section>
 {:else}
-  <details
-    class="group mt-6 rounded-xl border border-slate-800 bg-slate-900/40"
-  >
+  <details class="group ios-group mt-4">
     <summary
-      class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-slate-300"
+      class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ios-label"
     >
       How to find a rattle in your car
-      <ChevronDown class="h-4 w-4 transition-transform group-open:rotate-180" />
+      <ChevronDown
+        class="h-5 w-5 text-ios-label3 transition-transform group-open:rotate-180"
+      />
     </summary>
-    <div class="space-y-4 px-4 pb-4 text-sm leading-relaxed text-slate-400">
+    <div class="space-y-4 px-4 pb-4 text-subhead text-ios-label2">
       <p>
         Most interior rattles and buzzes are resonances: a loose trim panel,
         clip, cable or bracket that vibrates at one particular frequency. Find

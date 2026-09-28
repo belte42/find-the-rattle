@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { Plus, Minus, Power, HeartPulse } from 'lucide-svelte'
+  import { Plus, Minus, Play, Square, Check, ChevronRight } from 'lucide-svelte'
   import { autoRepeat } from './lib/autoRepeat'
-  import { FREQ_MIN, FREQ_MAX, type RattleRecord } from './consts'
+  import IosSwitch from './IosSwitch.svelte'
+  import { FREQ_MIN, FREQ_MAX, percent, type RattleRecord } from './consts'
 
   interface Props {
     frequency: number
@@ -37,28 +38,34 @@
     onOpenRattleTest,
   }: Props = $props()
 
-  const panLabel = $derived(pan <= -0.5 ? 'L' : pan >= 0.5 ? 'R' : 'C')
+  const panLabel = $derived(
+    pan <= -0.5 ? 'Left' : pan >= 0.5 ? 'Right' : 'Centre'
+  )
 </script>
 
-<!-- Frequency display -->
-<div class="mb-4 flex flex-1 flex-col items-center justify-center gap-2">
-  <p class="text-sm uppercase tracking-wider text-slate-500">Frequency</p>
-  <p class="text-5xl font-bold tabular-nums text-slate-50 sm:text-6xl">
-    {frequency} Hz
+<!-- Frequency readout -->
+<div class="flex min-h-28 flex-1 flex-col items-center justify-center">
+  <p class="text-footnote text-ios-label2">Frequency</p>
+  <p
+    class="font-rounded text-[64px] leading-[72px] font-bold tabular-nums tracking-tight"
+  >
+    {frequency}<span class="ml-1 text-[28px] font-semibold text-ios-label2"
+      >Hz</span
+    >
   </p>
 </div>
 
-<!-- Frequency controls: -/+ around a slider -->
+<!-- Stepper around a slider -->
 <div class="mb-6 flex items-center gap-3">
   <button
     type="button"
-    class="btn-tactile flex h-14 w-14 shrink-0 select-none items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
+    class="ios-icon-btn h-14 w-14 shrink-0"
     use:autoRepeat={() => setFreq(frequency - 1)}
     aria-label="Down 1 Hz (hold to repeat)"
   >
-    <Minus class="h-7 w-7" />
+    <Minus class="h-6 w-6" />
   </button>
-  <div class="flex min-w-0 flex-1 flex-col gap-1">
+  <div class="min-w-0 flex-1">
     <input
       type="range"
       min={FREQ_MIN}
@@ -66,44 +73,41 @@
       step="1"
       value={frequency}
       oninput={(e) => setFreq(Number(e.currentTarget.value))}
-      class="w-full cursor-pointer accent-slate-400"
+      class="ios-range"
+      style="--pct: {percent(frequency, FREQ_MIN, FREQ_MAX)}"
       aria-label="Frequency"
     />
-    <div class="flex justify-between text-xs text-slate-500">
+    <div class="flex justify-between text-caption text-ios-label3">
       <span>{FREQ_MIN}</span>
       <span>{FREQ_MAX}</span>
     </div>
   </div>
   <button
     type="button"
-    class="btn-tactile flex h-14 w-14 shrink-0 select-none items-center justify-center rounded-xl border-2 border-slate-600 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700"
+    class="ios-icon-btn h-14 w-14 shrink-0"
     use:autoRepeat={() => setFreq(frequency + 1)}
     aria-label="Up 1 Hz (hold to repeat)"
   >
-    <Plus class="h-7 w-7" />
+    <Plus class="h-6 w-6" />
   </button>
 </div>
 
-<!-- Pulse mode toggle -->
-<div class="mb-6 flex justify-center">
-  <button
-    type="button"
-    class="btn-tactile flex items-center gap-2 rounded-xl px-6 {pulseEnabled
-      ? 'border-2 border-amber-500 bg-amber-500/20 text-amber-400'
-      : 'border-2 border-slate-600 bg-slate-800 text-slate-400'}"
-    aria-pressed={pulseEnabled}
-    onclick={togglePulse}
-  >
-    <HeartPulse class="h-6 w-6" />
-    <span>Pulse (1s on/off)</span>
-  </button>
-</div>
-
-<!-- Panning -->
-<div class="mb-6 px-2">
-  <p class="mb-2 text-center text-sm text-slate-500">Pan: {panLabel}</p>
-  <div class="flex items-center gap-2">
-    <span class="text-xs text-slate-600">L</span>
+<!-- Options -->
+<div class="ios-group mb-6">
+  <div class="ios-row">
+    <div class="min-w-0 flex-1">
+      <p>Pulse</p>
+      <p class="text-footnote text-ios-label2">1 s on, 1 s off</p>
+    </div>
+    <IosSwitch
+      checked={pulseEnabled}
+      label="Pulse"
+      onchange={() => togglePulse()}
+    />
+  </div>
+  <div class="ios-row">
+    <p class="shrink-0">Balance</p>
+    <span class="text-footnote text-ios-label2">L</span>
     <input
       type="range"
       min="-1"
@@ -111,58 +115,67 @@
       step="0.01"
       value={pan}
       oninput={(e) => setPan(Number(e.currentTarget.value))}
-      class="flex-1 cursor-pointer accent-slate-400"
-      aria-label="Stereo pan"
+      class="ios-range ios-range-plain min-w-0 flex-1"
+      aria-label="Left/right balance"
+      aria-valuetext={panLabel}
     />
-    <span class="text-xs text-slate-600">R</span>
+    <span class="text-footnote text-ios-label2">R</span>
   </div>
 </div>
 
 <!-- Saved rattles (from rattle test) -->
-<div class="mb-6">
-  <p class="mb-2 text-sm text-slate-500">Saved rattles</p>
+<p class="ios-section-header">Saved rattles</p>
+<div class="ios-group mb-6">
   {#if rattleRecords.length === 0}
     <button
       type="button"
-      class="btn-tactile w-full rounded-xl border-2 border-slate-600 bg-slate-800 px-4 py-3 text-center text-sm text-slate-200 hover:border-slate-500 hover:bg-slate-700"
+      class="ios-row w-full text-left text-ios-blue"
       onclick={onOpenRattleTest}
     >
-      None yet — run a Rattle Test to find them
+      <span class="flex-1">Run a Rattle Test to find them</span>
+      <ChevronRight class="h-5 w-5 text-ios-label3" />
     </button>
   {:else}
-    <div class="grid grid-cols-2 gap-3">
-      {#each rattleRecords as r (r.id)}
-        <button
-          type="button"
-          class="btn-tactile rounded-xl border-2 py-4 hover:border-slate-500 hover:bg-slate-700 {r.frequency ===
-          frequency
-            ? 'border-amber-500 bg-slate-800 text-amber-300'
-            : 'border-slate-600 bg-slate-800 text-slate-200'} {r.fixed
-            ? 'opacity-50'
-            : ''}"
-          onclick={() => onSelectRattle(r)}
+    {#each rattleRecords as r (r.id)}
+      <button
+        type="button"
+        class="ios-row w-full text-left"
+        onclick={() => onSelectRattle(r)}
+      >
+        <span
+          class="min-w-0 flex-1 truncate {r.fixed ? 'text-ios-label3' : ''}"
         >
-          <span class="font-semibold"
-            >{r.fixed ? '✓ ' : ''}{r.name.trim() || `${r.frequency} Hz`}</span
-          >
-          {#if r.name.trim()}
-            <span class="block text-sm text-slate-500">{r.frequency} Hz</span>
-          {/if}
-        </button>
-      {/each}
-    </div>
+          {r.name.trim() || `${r.frequency} Hz`}
+        </span>
+        {#if r.fixed}
+          <span class="text-footnote text-ios-green">Fixed</span>
+        {/if}
+        {#if r.name.trim()}
+          <span class="text-ios-label2 tabular-nums">{r.frequency} Hz</span>
+        {/if}
+        <Check
+          class="h-5 w-5 shrink-0 text-ios-blue {r.frequency === frequency
+            ? ''
+            : 'invisible'}"
+          aria-hidden="true"
+        />
+      </button>
+    {/each}
   {/if}
 </div>
 
 <!-- Start / Stop -->
 <button
   type="button"
-  class="btn-tactile w-full rounded-xl border-2 py-4 disabled:opacity-50 {audioActive
-    ? 'border-red-600 bg-red-600 text-white hover:border-red-500 hover:bg-red-500'
-    : 'border-emerald-600 bg-emerald-600/20 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-500/30'}"
+  class="ios-btn w-full {audioActive
+    ? 'bg-ios-red text-white'
+    : 'bg-ios-green text-black'}"
   onclick={audioActive ? onStop : onStart}
   disabled={!warningDismissed || starting}
 >
-  <Power class="mr-2 inline-block h-5 w-5" />
-  {audioActive ? 'Stop' : 'Start'}
+  {#if audioActive}
+    <Square class="h-5 w-5 fill-current" /> Stop
+  {:else}
+    <Play class="h-5 w-5 fill-current" /> Start
+  {/if}
 </button>
