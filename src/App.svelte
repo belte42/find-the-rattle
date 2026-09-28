@@ -10,6 +10,7 @@
   import { AudioEngine } from './lib/audioEngine'
   import * as wakeLock from './lib/wakeLock'
   import { load, num, save } from './lib/storage'
+  import { track } from './lib/analytics'
   import {
     AUTO_STOP_OPTIONS,
     DEFAULT_AUTO_STOP,
@@ -87,11 +88,16 @@
   let rattleRecords = $state<RattleRecord[]>(loadRecords())
   let frameId = 0
   let startedAt = 0
+  /** Rattles marked since playback started (for analytics) */
+  let sessionMarks = 0
   /** Speed setting to restore after a refine sweep, which runs slower */
   let speedBeforeRefine = 0
 
   engine.setVolume(initialVolume)
-  engine.onEnded = stopAll
+  engine.onEnded = () => {
+    const elapsed = (performance.now() - startedAt) / 1000
+    stopAll(autoStopMin && elapsed >= autoStopMin * 60 - 1 ? 'auto-stop' : 'finished')
+  }
 
   $effect(() => save(RECORDS_KEY, rattleRecords))
   $effect(() => save(VOLUME_KEY, volume))
@@ -115,7 +121,7 @@
   })
 
   onDestroy(() => {
-    stopAll()
+    stopAll('closed')
     engine.destroy()
   })
 
@@ -158,6 +164,7 @@
   function onStarted() {
     audioActive = true
     startedAt = performance.now()
+    sessionMarks = 0
     wakeLock.acquire()
   }
 
@@ -169,7 +176,13 @@
     engine.enablePulse(pulseEnabled)
     const ok = await engine.start()
     starting = false
-    if (ok) onStarted()
+    if (!ok) return
+    onStarted()
+    track('manual-start', {
+      frequency,
+      pulse: pulseEnabled,
+      pan: pan <= -0.5 ? 'left' : pan >= 0.5 ? 'right' : 'center',
+    })
   }
 
   function setFreq(hz: number) {
@@ -200,12 +213,13 @@
   function dismissWarning() {
     warningDismissed = true
     save(WARNING_KEY, true)
+    track('warning-accepted')
   }
 
   function setRattleTestMode(enable: boolean) {
     if (enable === rattleTestMode) return
     // Don't carry a playing tone over into the other mode
-    stopAll()
+    stopAll('mode-switch')
     rattleTestMode = enable
   }
 
@@ -213,7 +227,8 @@
     lo: number,
     hi: number,
     speed: number,
-    loopSweep: boolean
+    loopSweep: boolean,
+    mode: 'sweep' | 'loop' | 'refine'
   ) {
     if (starting || testState !== 'idle' || !warningDismissed) return
     starting = true
@@ -226,12 +241,13 @@
     testState = 'running'
     onStarted()
     trackSweep()
+    track('test-start', { mode, from: lo, to: hi, speed })
   }
 
   function startRattleTest() {
     if (rangeError) return
     refine = null
-    beginSweep(rangeMin!, rangeMax!, sweepSpeed, loop)
+    beginSweep(rangeMin!, rangeMax!, sweepSpeed, loop, loop ? 'loop' : 'sweep')
   }
 
   function refineRattle(r: RattleRecord) {
@@ -240,7 +256,7 @@
     refine = { lo, hi, name: r.name }
     speedBeforeRefine = sweepSpeed
     sweepSpeed = REFINE_SPEED
-    beginSweep(lo, hi, REFINE_SPEED, true)
+    beginSweep(lo, hi, REFINE_SPEED, true, 'refine')
   }
 
   /** Mirror the audio-clock sweep position into the UI */
@@ -250,7 +266,15 @@
     frameId = requestAnimationFrame(trackSweep)
   }
 
-  function stopAll() {
+  function stopAll(reason = 'other') {
+    if (audioActive) {
+      track('tone-stop', {
+        mode: testState === 'idle' ? 'manual' : refine ? 'refine' : 'test',
+        reason,
+        seconds: Math.round((performance.now() - startedAt) / 1000),
+        marks: sessionMarks,
+      })
+    }
     cancelAnimationFrame(frameId)
     engine.stop()
     if (refine) {
@@ -264,10 +288,10 @@
   }
 
   function stopFromButton() {
-    if (!justStarted()) stopAll()
+    if (!justStarted()) stopAll('user')
   }
 
-  function addRecord(freq: number) {
+  function addRecord(freq: number, source: 'tap' | 'hold') {
     rattleRecords.push({
       id: newId(),
       frequency: freq,
@@ -276,6 +300,8 @@
     })
     lastMark = { frequency: freq, count: (lastMark?.count ?? 0) + 1 }
     navigator.vibrate?.(30)
+    sessionMarks++
+    track('rattle-mark', { frequency: freq, source })
   }
 
   function markRattle() {
@@ -283,7 +309,7 @@
     // The tone that shook the rattle was playing a moment before the tap
     const reaction = reactionMs !== null ? reactionMs / 1000 : REACTION_TIME_S
     const lookback = reaction + engine.outputLatency
-    addRecord(Math.round(engine.getSweepFrequency(lookback)))
+    addRecord(Math.round(engine.getSweepFrequency(lookback)), 'tap')
   }
 
   function holdSweep() {
@@ -291,6 +317,7 @@
     sweepCurrentFreq = engine.holdSweep()
     lastMark = null
     testState = 'holding'
+    track('hold', { frequency: sweepCurrentFreq })
   }
 
   function nudge(delta: number) {
@@ -303,7 +330,7 @@
 
   function saveHeld() {
     // The user tuned this by ear, so no reaction-time correction
-    addRecord(Math.round(engine.getSweepFrequency()))
+    addRecord(Math.round(engine.getSweepFrequency()), 'hold')
   }
 
   function resumeSweep() {
@@ -322,7 +349,9 @@
 
   function toggleFixed(id: string) {
     const r = rattleRecords.find((r) => r.id === id)
-    if (r) r.fixed = !r.fixed
+    if (!r) return
+    r.fixed = !r.fixed
+    if (r.fixed) track('rattle-fixed', { frequency: r.frequency })
   }
 </script>
 
@@ -361,7 +390,7 @@
     {engine}
     bind:autoStopMin
     bind:reactionMs
-    onBeforeCalibrate={stopAll}
+    onBeforeCalibrate={() => stopAll('calibration')}
     onClose={() => (settingsOpen = false)}
   />
 {/if}
@@ -492,13 +521,13 @@
     />
   {/if}
 
-  {#if remaining !== null}
-    <p class="mt-2 text-center text-xs text-slate-500">
-      Auto-stop in {formatTime(remaining)}
-    </p>
-  {/if}
+  <!-- Always rendered (fixed height) so the Start/Stop button doesn't jump when playback starts -->
+  <p class="mt-2 h-4 text-center text-xs text-slate-500">
+    {remaining !== null ? `Auto-stop in ${formatTime(remaining)}` : ''}
+  </p>
 
-  {#if !audioActive}
+  <!-- Hidden during a test so the tap pad gets the space -->
+  {#if !(rattleTestMode && testState !== 'idle')}
     <HowTo />
   {/if}
 </main>

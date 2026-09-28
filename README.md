@@ -74,7 +74,9 @@ The audio engine lives in [src/lib/audioEngine.ts](src/lib/audioEngine.ts).
 ## Privacy
 
 No accounts, and your saved rattles and settings stay in your browser. The site
-uses [Umami](https://umami.is), a cookie-free analytics tool, to count visits.
+uses [Umami](https://umami.is), a cookie-free analytics tool, to count visits and
+anonymous usage events (e.g. "test started", "rattle marked at 84 Hz") so we can
+see which features help. No personal data or identifiers are collected.
 
 ## Contributing
 

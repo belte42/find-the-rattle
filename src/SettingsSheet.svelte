@@ -3,6 +3,7 @@
   import { X } from 'lucide-svelte'
   import type { AudioEngine, Beep } from './lib/audioEngine'
   import { AUTO_STOP_OPTIONS, REACTION_TIME_S } from './consts'
+  import { track } from './lib/analytics'
 
   interface Props {
     engine: AudioEngine
@@ -75,6 +76,7 @@
     }
     const sorted = [...results].sort((a, b) => a - b)
     reactionMs = Math.round(sorted[Math.floor(sorted.length / 2)])
+    track('calibration-done', { ms: reactionMs })
     calibrating = false
     message = `Saved: ${reactionMs} ms`
   }
@@ -146,7 +148,10 @@
               ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300'
               : 'border-slate-700 text-slate-400'}"
             aria-pressed={autoStopMin === min}
-            onclick={() => (autoStopMin = min)}
+            onclick={() => {
+              autoStopMin = min
+              track('auto-stop-set', { minutes: min })
+            }}
           >
             {min === 0 ? 'Off' : `${min} min`}
           </button>
