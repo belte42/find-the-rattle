@@ -2,7 +2,7 @@
 
 **Find the rattles and buzzes in your car using your own speakers.**
 
-👉 **[belte42.github.io/rattle-finder](https://belte42.github.io/rattle-finder/)**. It runs in the
+👉 **[belte42.github.io/find-the-rattle](https://belte42.github.io/find-the-rattle/)**. It runs in the
 browser on your phone, with nothing to install and no account.
 
 Most interior rattles are resonances: a loose panel, clip, or wire that vibrates

@@ -66,14 +66,14 @@
       Free and open source ·
       <a
         class="underline hover:text-slate-300"
-        href="https://github.com/belte42/rattle-finder"
+        href="https://github.com/belte42/find-the-rattle"
         target="_blank"
         rel="noopener noreferrer">Source code</a
       >
       ·
       <a
         class="underline hover:text-slate-300"
-        href="https://github.com/belte42/rattle-finder/issues"
+        href="https://github.com/belte42/find-the-rattle/issues"
         target="_blank"
         rel="noopener noreferrer">Report a problem or suggest a feature</a
       >

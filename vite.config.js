@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
  * Where the production site lives. Change this one line to move domains,
  * e.g. to 'https://findtherattle.com/' once the custom domain is set up.
  */
-const SITE_URL = 'https://belte42.github.io/rattle-finder/'
+const SITE_URL = 'https://belte42.github.io/find-the-rattle/'
 
 const DESCRIPTION =
   'Find rattles and buzzes in your car. Free test tones that sweep through your car speakers so you can make a rattle happen on demand and track it down.'
