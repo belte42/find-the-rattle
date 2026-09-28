@@ -5,10 +5,11 @@ import tailwindcss from '@tailwindcss/vite'
 import QRCode from 'qrcode'
 
 /**
- * Where the production site lives. Change this one line to move domains,
- * e.g. to 'https://findtherattle.com/' once the custom domain is set up.
+ * Where the production site lives (GitHub Pages custom domain, DNS at Hostinger).
+ * Change this one line to move domains; the base path, canonical URL,
+ * link previews and QR code all follow it.
  */
-const SITE_URL = 'https://belte42.github.io/find-the-rattle/'
+const SITE_URL = 'https://findtherattle.com/'
 
 const DESCRIPTION =
   'Find rattles and buzzes in your car. Free test tones that sweep through your car speakers so you can make a rattle happen on demand and track it down.'
