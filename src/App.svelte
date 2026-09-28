@@ -30,6 +30,7 @@
   import RattleTestPanel from './RattleTestPanel.svelte'
   import SettingsSheet from './SettingsSheet.svelte'
   import HowTo from './HowTo.svelte'
+  import DesktopIntro from './DesktopIntro.svelte'
 
   // Storage keys keep the old project name so existing users keep their data
   const WARNING_KEY = 'rattle-finder-warning-dismissed'
@@ -49,6 +50,11 @@
   let warningDismissed = $state(load<unknown>(WARNING_KEY, false) === true)
   let volume = $state(initialVolume)
   let settingsOpen = $state(false)
+
+  // Wide screens show the intro/guide column beside the app card
+  const desktopQuery = window.matchMedia('(min-width: 1024px)')
+  let isDesktop = $state(desktopQuery.matches)
+  desktopQuery.addEventListener('change', (e) => (isDesktop = e.matches))
   let autoStopMin = $state(
     AUTO_STOP_OPTIONS.includes(storedSettings.autoStopMin as number)
       ? (storedSettings.autoStopMin as number)
@@ -96,7 +102,9 @@
   engine.setVolume(initialVolume)
   engine.onEnded = () => {
     const elapsed = (performance.now() - startedAt) / 1000
-    stopAll(autoStopMin && elapsed >= autoStopMin * 60 - 1 ? 'auto-stop' : 'finished')
+    stopAll(
+      autoStopMin && elapsed >= autoStopMin * 60 - 1 ? 'auto-stop' : 'finished'
+    )
   }
 
   $effect(() => save(RECORDS_KEY, rattleRecords))
@@ -395,144 +403,160 @@
   />
 {/if}
 
-<main
-  class="app-main flex h-full flex-col overflow-y-auto bg-slate-950 p-4 text-slate-100"
+<!-- Phones: the app fills the screen. Larger screens: a phone-sized card, plus an intro column on desktop -->
+<div
+  class="page flex h-full justify-center md:items-center md:overflow-y-auto md:p-8 lg:items-start lg:gap-16 xl:gap-24"
 >
-  <!-- Header -->
-  <header class="mb-3 flex items-center justify-between gap-2">
-    <div class="min-w-0 text-left">
-      <h1 class="text-2xl font-bold text-slate-100 sm:text-3xl">
-        Find The Rattle
-      </h1>
-      <p class="mt-1 text-sm text-slate-400">
-        Find rattles and buzzes in your car
-      </p>
+  {#if isDesktop}
+    <div class="min-w-0 max-w-xl flex-1 pt-6">
+      <DesktopIntro />
     </div>
-    <div class="flex shrink-0 items-center gap-1">
-      <a
-        href="https://www.buymeacoffee.com/rattle.finder"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img
-          src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-          alt="Buy Me A Coffee"
-          class="bmc-button-img"
-        />
-      </a>
+  {/if}
+
+  <main
+    class="app-main flex h-full w-full flex-col overflow-y-auto bg-slate-950 p-4 text-slate-100 md:h-[min(880px,calc(100dvh-4rem))] md:w-[420px] md:shrink-0 md:rounded-[2rem] md:border md:border-slate-800 md:shadow-2xl md:shadow-black/60 lg:sticky lg:top-0"
+  >
+    <!-- Header -->
+    <header class="mb-3 flex items-center justify-between gap-2">
+      <div class="min-w-0 text-left">
+        <h1 class="text-2xl font-bold text-slate-100">
+          Find The Rattle
+        </h1>
+        <p class="mt-1 text-sm text-slate-400">
+          Find rattles and buzzes in your car
+        </p>
+      </div>
+      <div class="flex shrink-0 items-center gap-1">
+        <a
+          href="https://www.buymeacoffee.com/rattle.finder"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+            alt="Buy Me A Coffee"
+            class="bmc-button-img"
+          />
+        </a>
+        <button
+          type="button"
+          class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800"
+          onclick={() => (settingsOpen = true)}
+          aria-label="Settings"
+        >
+          <Settings class="h-6 w-6" />
+        </button>
+      </div>
+    </header>
+
+    <!-- Mode toggle -->
+    <div class="mb-4 flex rounded-lg border border-slate-700 bg-slate-900 p-1">
       <button
         type="button"
-        class="flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800"
-        onclick={() => (settingsOpen = true)}
-        aria-label="Settings"
+        class="btn-tactile flex flex-1 items-center justify-center gap-2 rounded-md py-2 {!rattleTestMode
+          ? 'bg-slate-700 text-slate-100'
+          : 'text-slate-500'}"
+        aria-pressed={!rattleTestMode}
+        onclick={() => setRattleTestMode(false)}
       >
-        <Settings class="h-6 w-6" />
+        <SlidersHorizontal class="h-5 w-5" />
+        <span>Manual</span>
+      </button>
+      <button
+        type="button"
+        class="btn-tactile flex flex-1 items-center justify-center gap-2 rounded-md py-2 {rattleTestMode
+          ? 'bg-slate-700 text-slate-100'
+          : 'text-slate-500'}"
+        aria-pressed={rattleTestMode}
+        onclick={() => setRattleTestMode(true)}
+      >
+        <TestTubes class="h-5 w-5" />
+        <span>Rattle Test</span>
       </button>
     </div>
-  </header>
 
-  <!-- Mode toggle -->
-  <div class="mb-4 flex rounded-lg border border-slate-700 bg-slate-900 p-1">
-    <button
-      type="button"
-      class="btn-tactile flex flex-1 items-center justify-center gap-2 rounded-md py-2 {!rattleTestMode
-        ? 'bg-slate-700 text-slate-100'
-        : 'text-slate-500'}"
-      aria-pressed={!rattleTestMode}
-      onclick={() => setRattleTestMode(false)}
-    >
-      <SlidersHorizontal class="h-5 w-5" />
-      <span>Manual</span>
-    </button>
-    <button
-      type="button"
-      class="btn-tactile flex flex-1 items-center justify-center gap-2 rounded-md py-2 {rattleTestMode
-        ? 'bg-slate-700 text-slate-100'
-        : 'text-slate-500'}"
-      aria-pressed={rattleTestMode}
-      onclick={() => setRattleTestMode(true)}
-    >
-      <TestTubes class="h-5 w-5" />
-      <span>Rattle Test</span>
-    </button>
-  </div>
+    <!-- Volume (shared by both modes) -->
+    <div class="mb-4 flex items-center gap-3 px-2">
+      <Volume1 class="h-5 w-5 shrink-0 text-slate-500" />
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value={volume}
+        oninput={(e) => setVolume(Number(e.currentTarget.value))}
+        class="flex-1 cursor-pointer accent-slate-400"
+        aria-label="Volume"
+      />
+      <span class="w-10 text-right text-xs tabular-nums text-slate-500">
+        {Math.round(volume * 100)}%
+      </span>
+    </div>
 
-  <!-- Volume (shared by both modes) -->
-  <div class="mb-4 flex items-center gap-3 px-2">
-    <Volume1 class="h-5 w-5 shrink-0 text-slate-500" />
-    <input
-      type="range"
-      min="0"
-      max="1"
-      step="0.01"
-      value={volume}
-      oninput={(e) => setVolume(Number(e.currentTarget.value))}
-      class="flex-1 cursor-pointer accent-slate-400"
-      aria-label="Volume"
-    />
-    <span class="w-10 text-right text-xs tabular-nums text-slate-500">
-      {Math.round(volume * 100)}%
-    </span>
-  </div>
+    {#if rattleTestMode}
+      <RattleTestPanel
+        bind:rangeMin
+        bind:rangeMax
+        bind:sweepSpeed
+        bind:loop
+        bind:rattleRecords
+        {testState}
+        {starting}
+        {rangeError}
+        {sweepCurrentFreq}
+        {sweepDirection}
+        {refine}
+        {lastMark}
+        onStart={startRattleTest}
+        onStop={stopFromButton}
+        onHold={holdSweep}
+        onResume={resumeSweep}
+        onNudge={nudge}
+        onSaveHeld={saveHeld}
+        onMark={markRattle}
+        onClear={clearRattleRecords}
+        onDelete={deleteRattle}
+        onToggleFixed={toggleFixed}
+        onRefine={refineRattle}
+        onSelectForManual={playInManual}
+      />
+    {:else}
+      <ManualPanel
+        {frequency}
+        {pulseEnabled}
+        {pan}
+        {audioActive}
+        {starting}
+        {warningDismissed}
+        {rattleRecords}
+        {setFreq}
+        {togglePulse}
+        {setPan}
+        onSelectRattle={(r) => setFreq(r.frequency)}
+        onStart={startManual}
+        onStop={stopFromButton}
+        onOpenRattleTest={() => setRattleTestMode(true)}
+      />
+    {/if}
 
-  {#if rattleTestMode}
-    <RattleTestPanel
-      bind:rangeMin
-      bind:rangeMax
-      bind:sweepSpeed
-      bind:loop
-      bind:rattleRecords
-      {testState}
-      {starting}
-      {rangeError}
-      {sweepCurrentFreq}
-      {sweepDirection}
-      {refine}
-      {lastMark}
-      onStart={startRattleTest}
-      onStop={stopFromButton}
-      onHold={holdSweep}
-      onResume={resumeSweep}
-      onNudge={nudge}
-      onSaveHeld={saveHeld}
-      onMark={markRattle}
-      onClear={clearRattleRecords}
-      onDelete={deleteRattle}
-      onToggleFixed={toggleFixed}
-      onRefine={refineRattle}
-      onSelectForManual={playInManual}
-    />
-  {:else}
-    <ManualPanel
-      {frequency}
-      {pulseEnabled}
-      {pan}
-      {audioActive}
-      {starting}
-      {warningDismissed}
-      {rattleRecords}
-      {setFreq}
-      {togglePulse}
-      {setPan}
-      onSelectRattle={(r) => setFreq(r.frequency)}
-      onStart={startManual}
-      onStop={stopFromButton}
-      onOpenRattleTest={() => setRattleTestMode(true)}
-    />
-  {/if}
+    <!-- Always rendered (fixed height) so the Start/Stop button doesn't jump when playback starts -->
+    <p class="mt-2 h-4 text-center text-xs text-slate-500">
+      {remaining !== null ? `Auto-stop in ${formatTime(remaining)}` : ''}
+    </p>
 
-  <!-- Always rendered (fixed height) so the Start/Stop button doesn't jump when playback starts -->
-  <p class="mt-2 h-4 text-center text-xs text-slate-500">
-    {remaining !== null ? `Auto-stop in ${formatTime(remaining)}` : ''}
-  </p>
-
-  <!-- Hidden during a test so the tap pad gets the space -->
-  {#if !(rattleTestMode && testState !== 'idle')}
-    <HowTo />
-  {/if}
-</main>
+    <!-- Hidden during a test so the tap pad gets the space; on desktop it's in the side column -->
+    {#if !isDesktop && !(rattleTestMode && testState !== 'idle')}
+      <HowTo />
+    {/if}
+  </main>
+</div>
 
 <style>
+  @media (min-width: 768px) {
+    .page {
+      background: radial-gradient(ellipse at top, #0f172a 0%, #020617 60%);
+    }
+  }
   /* Keep content clear of the notch / home indicator in standalone mode */
   .app-main {
     padding-top: max(1rem, env(safe-area-inset-top));
@@ -542,7 +566,8 @@
     height: 36px !important;
     width: 130px !important;
   }
-  @media (max-width: 400px) {
+  /* Small phones, and the fixed-width app card on larger screens */
+  @media (max-width: 400px), (min-width: 768px) {
     .bmc-button-img {
       height: 30px !important;
       width: 109px !important;
