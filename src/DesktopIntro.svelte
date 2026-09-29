@@ -12,10 +12,9 @@
     Track down rattles and buzzes in your car
   </h2>
   <p class="mb-8 text-lg leading-relaxed text-ios-label2">
-    Most interior rattles are a loose panel, clip or cable vibrating at one
-    particular frequency. Find The Rattle sweeps test tones through your car's
-    own speakers, so you can make the rattle happen on demand while parked and
-    track it down by hand.
+    Most rattles are a loose panel, clip or cable vibrating at one frequency.
+    Find The Rattle sweeps test tones through your car's speakers, so you can
+    make the rattle happen on demand and track it down by hand.
   </p>
 
   <div

@@ -31,7 +31,8 @@ export default defineConfig(({ command }) => ({
     {
       // `import qrSvg from 'virtual:site-qr'`: QR code of SITE_URL as an SVG string
       name: 'site-qr',
-      resolveId: (id) => (id === 'virtual:site-qr' ? '\0virtual:site-qr' : null),
+      resolveId: (id) =>
+        id === 'virtual:site-qr' ? '\0virtual:site-qr' : null,
       async load(id) {
         if (id !== '\0virtual:site-qr') return null
         const svg = await QRCode.toString(SITE_URL, {
@@ -48,21 +49,29 @@ export default defineConfig(({ command }) => ({
         name: 'Find The Rattle',
         short_name: 'Find Rattle',
         description: DESCRIPTION,
+        id: '/',
+        start_url: '/',
+        scope: '/',
         theme_color: '#000000',
         background_color: '#000000',
         display: 'standalone',
+        categories: ['utilities', 'productivity'],
+        // The artwork sits inside the maskable safe zone, so every size works for both
         icons: [
+          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' },
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
           {
-            src: 'icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable',
+            src: 'icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
           },
           {
             src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'maskable',
           },
         ],
       },

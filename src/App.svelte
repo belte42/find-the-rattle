@@ -73,6 +73,7 @@
       ? storedSettings.reactionMs
       : null
   )
+  let lightMode = $state(storedSettings.lightMode === true)
 
   // Manual mode
   let frequency = $state(100)
@@ -122,7 +123,8 @@
 
   $effect(() => save(RECORDS_KEY, rattleRecords))
   $effect(() => save(VOLUME_KEY, volume))
-  $effect(() => save(SETTINGS_KEY, { autoStopMin, reactionMs }))
+  $effect(() => save(SETTINGS_KEY, { autoStopMin, reactionMs, lightMode }))
+  $effect(() => applyTheme(lightMode))
   $effect(() => save(TEST_KEY, { rangeMin, rangeMax, sweepSpeed, loop }))
   $effect(() => engine.setAutoStop(autoStopMin ? autoStopMin * 60 : null))
 
@@ -145,6 +147,16 @@
     stopAll('closed')
     engine.destroy()
   })
+
+  /** index.html applies the saved theme before first paint; this keeps it in sync */
+  function applyTheme(light: boolean) {
+    const root = document.documentElement
+    if (light) root.dataset.theme = 'light'
+    else delete root.dataset.theme
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', light ? '#f2f2f7' : '#000000')
+  }
 
   function loadRecords(): RattleRecord[] {
     const stored = load<unknown>(RECORDS_KEY, [])
@@ -410,7 +422,7 @@
 
   <!-- The phone: on larger screens a card, which also frames the app's alert and sheets -->
   <div
-    class="relative w-full md:h-[min(880px,calc(100dvh-4rem))] md:w-[420px] md:shrink-0 md:overflow-hidden md:rounded-[2.5rem] md:border md:border-ios-sep md:shadow-2xl md:shadow-black lg:sticky lg:top-0"
+    class="relative w-full md:h-[min(880px,calc(100dvh-4rem))] md:w-[420px] md:shrink-0 md:overflow-hidden md:rounded-[2.5rem] md:border md:border-ios-sep md:shadow-2xl md:shadow-ios-shadow lg:sticky lg:top-0"
   >
     <main
       class="app-main flex min-h-dvh w-full flex-col bg-ios-bg px-4 md:h-full md:min-h-0 md:overflow-y-auto"
@@ -557,7 +569,7 @@
     {#if !warningDismissed}
       <!-- iOS-style alert (inside the phone card on larger screens) -->
       <div
-        class="alert-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 md:absolute"
+        class="alert-backdrop fixed inset-0 z-50 flex items-center justify-center bg-ios-dim p-6 md:absolute"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="warning-title"
@@ -565,7 +577,7 @@
         out:fade={{ duration: motion(200) }}
       >
         <div
-          class="alert w-full max-w-[300px] overflow-hidden rounded-[14px] bg-[rgb(44_44_46/0.92)] text-center backdrop-blur-xl"
+          class="alert w-full max-w-[300px] overflow-hidden rounded-[14px] bg-ios-alert text-center backdrop-blur-xl"
         >
           <div class="px-4 pt-5 pb-4">
             <h2 id="warning-title" class="mb-1 text-body font-semibold">
@@ -579,7 +591,7 @@
           </div>
           <button
             type="button"
-            class="h-11 w-full border-t-[0.5px] border-ios-sep text-body font-semibold text-ios-blue transition-colors hover:bg-white/5 hover:opacity-100 active:bg-white/10"
+            class="h-11 w-full border-t-[0.5px] border-ios-sep text-body font-semibold text-ios-blue transition-colors hover:bg-ios-tint hover:opacity-100 active:bg-ios-fill"
             onclick={dismissWarning}
           >
             I Understand
@@ -593,6 +605,7 @@
         {engine}
         bind:autoStopMin
         bind:reactionMs
+        bind:lightMode
         onBeforeCalibrate={() => stopAll('calibration')}
         onClose={() => (settingsOpen = false)}
       />
@@ -609,7 +622,11 @@
 <style>
   @media (min-width: 768px) {
     .page {
-      background: radial-gradient(ellipse at top, #1c1c1e 0%, #000 60%);
+      background: radial-gradient(
+        ellipse at top,
+        var(--color-ios-page-top) 0%,
+        var(--color-ios-page) 60%
+      );
     }
   }
   /* Keep content clear of the notch / home indicator in standalone mode */

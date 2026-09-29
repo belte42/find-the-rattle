@@ -1,14 +1,18 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
+  import { Share } from 'lucide-svelte'
   import type { AudioEngine, Beep } from './lib/audioEngine'
   import { AUTO_STOP_OPTIONS, REACTION_TIME_S } from './consts'
   import { track } from './lib/analytics'
+  import { install, isIos, promptInstall } from './lib/install.svelte'
+  import IosSwitch from './IosSwitch.svelte'
   import Sheet from './Sheet.svelte'
 
   interface Props {
     engine: AudioEngine
     autoStopMin: number
     reactionMs: number | null
+    lightMode: boolean
     onBeforeCalibrate: () => void
     onClose: () => void
   }
@@ -17,6 +21,7 @@
     engine,
     autoStopMin = $bindable(),
     reactionMs = $bindable(),
+    lightMode = $bindable(),
     onBeforeCalibrate,
     onClose,
   }: Props = $props()
@@ -88,6 +93,10 @@
     calibrating = false
   }
 
+  async function installApp() {
+    track('install-prompt', { accepted: await promptInstall() })
+  }
+
   function close() {
     cancelCalibration()
     onClose()
@@ -116,6 +125,21 @@
       Cancel
     </button>
   {:else}
+    <!-- Appearance -->
+    <div class="ios-group mb-6 bg-ios-card2!">
+      <div class="ios-row">
+        <span class="flex-1">Light mode</span>
+        <IosSwitch
+          checked={lightMode}
+          label="Light mode"
+          onchange={(v) => {
+            lightMode = v
+            track('theme-set', { light: v })
+          }}
+        />
+      </div>
+    </div>
+
     <!-- Auto-stop -->
     <p class="ios-section-header">Auto-stop</p>
     <div
@@ -180,5 +204,35 @@
       what caused the rattle. Measure it in the car, through the same speakers
       or Bluetooth you'll test with.
     </p>
+
+    <!-- Install as an app (hidden once installed, or where it isn't possible) -->
+    {#if !install.installed && (install.canPrompt || isIos)}
+      <p class="ios-section-header mt-6">App</p>
+      {#if install.canPrompt}
+        <div class="ios-group bg-ios-card2!">
+          <button
+            type="button"
+            class="ios-row w-full text-left text-ios-blue"
+            onclick={installApp}
+          >
+            Install app
+          </button>
+        </div>
+        <p class="ios-section-footer">
+          Opens in its own window and works offline.
+        </p>
+      {:else}
+        <div class="ios-group bg-ios-card2!">
+          <p class="ios-row">
+            <span class="flex-1">Add to Home Screen</span>
+            <Share class="h-5 w-5 text-ios-blue" aria-hidden="true" />
+          </p>
+        </div>
+        <p class="ios-section-footer">
+          Tap Share in your browser, then Add to Home Screen. It then opens like
+          an app and works offline.
+        </p>
+      {/if}
+    {/if}
   {/if}
 </Sheet>

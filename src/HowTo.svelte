@@ -6,10 +6,8 @@
     Layers,
     Puzzle,
     Repeat,
-    Speaker,
     Sticker,
     Timer,
-    TriangleAlert,
     Wrench,
   } from 'lucide-svelte'
   import Culprits from './Culprits.svelte'
@@ -40,7 +38,7 @@
     },
     {
       title: 'Find it by hand',
-      text: 'Press on panels until the noise stops. Name it, then mark it fixed.',
+      text: "Press on panels until the noise stops. That's your culprit.",
     },
   ]
 
@@ -48,27 +46,27 @@
     {
       icon: Sticker,
       title: 'Felt or foam tape',
-      text: 'Stick anti-rattle felt tape where two hard parts touch, like a panel edge against the dash.',
+      text: 'Stick anti-rattle felt tape where two hard parts touch.',
     },
     {
       icon: Puzzle,
       title: 'Replace broken clips',
-      text: 'Lift the panel off with a plastic trim tool and swap any snapped clips. They are cheap and made for your car.',
+      text: 'Pop the panel off with a plastic trim tool and swap any snapped clips.',
     },
     {
       icon: Wrench,
       title: 'Tighten screws',
-      text: 'Check the screws holding trim, speakers and the number plate.',
+      text: 'Check any screws holding the part that rattles.',
     },
     {
       icon: Cable,
       title: 'Tie down cables',
-      text: 'Wrap loose wiring behind panels in fleece tape and fix it with cable ties.',
+      text: 'Wrap loose wiring in fleece tape and secure it with cable ties.',
     },
     {
       icon: Layers,
       title: 'Deaden big panels',
-      text: 'Butyl sound-deadening pads on door skins stop large panels resonating.',
+      text: 'Sound-deadening pads stop large panels, like door skins, resonating.',
     },
     {
       icon: Repeat,
@@ -81,10 +79,6 @@
     {
       icon: ArrowLeftRight,
       text: 'Pulse or left/right balance in Manual shows which side it’s on.',
-    },
-    {
-      icon: Speaker,
-      text: 'Most car speakers are weak below about 35 Hz, so rattles there may need a subwoofer.',
     },
     {
       icon: Timer,
@@ -137,13 +131,6 @@
         </li>
       {/each}
     </ul>
-    <p class="mt-4 flex gap-3 rounded-xl bg-ios-orange/10 p-3 text-ios-orange">
-      <TriangleAlert class="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-      <span
-        >Airbags sit behind the dashboard and often the A-pillar trim. If you're
-        not sure, leave those panels to a garage.</span
-      >
-    </p>
   </section>
 
   <section>

@@ -16,7 +16,7 @@
   aria-label={label}
   class="relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 {checked
     ? 'bg-ios-blue'
-    : 'bg-[rgb(120_120_128/0.32)]'}"
+    : 'bg-ios-switch-off'}"
   onclick={() => onchange(!checked)}
 >
   <span

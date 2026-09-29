@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* iOS dark-mode system colors and fonts (Apple Human Interface Guidelines) */
+/* iOS system colors (dark by default, light below) and fonts (Apple Human Interface Guidelines) */
 @theme {
   --color-ios-bg: #000000;
   --color-ios-card: #1c1c1e;
@@ -16,6 +16,17 @@
   --color-ios-red: #ff453a;
   --color-ios-orange: #ff9f0a;
   --color-ios-yellow: #ffd60a;
+  /* Control parts and surfaces that differ between light and dark */
+  --color-ios-thumb: #636366;
+  --color-ios-track: rgb(120 120 128 / 0.36);
+  --color-ios-switch-off: rgb(120 120 128 / 0.32);
+  --color-ios-fill-strong: rgb(118 118 128 / 0.36);
+  --color-ios-tint: rgb(255 255 255 / 0.06);
+  --color-ios-alert: rgb(44 44 46 / 0.92);
+  --color-ios-dim: rgb(0 0 0 / 0.5);
+  --color-ios-shadow: #000000;
+  --color-ios-page-top: #1c1c1e;
+  --color-ios-page: #000000;
   --font-rounded:
     ui-rounded, 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui,
     sans-serif;
@@ -48,6 +59,38 @@
 @utility text-caption {
   font-size: 12px;
   line-height: 16px;
+}
+
+/* Light mode (Settings), set as data-theme on <html> */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --color-ios-bg: #f2f2f7;
+  --color-ios-card: #ffffff;
+  --color-ios-card2: #f2f2f7;
+  --color-ios-card3: #e5e5ea;
+  --color-ios-fill: rgb(118 118 128 / 0.12);
+  --color-ios-sep: rgb(60 60 67 / 0.29);
+  --color-ios-label: #000000;
+  --color-ios-label2: rgb(60 60 67 / 0.6);
+  --color-ios-label3: rgb(60 60 67 / 0.3);
+  --color-ios-blue: #007aff;
+  --color-ios-green: #34c759;
+  --color-ios-red: #ff3b30;
+  --color-ios-orange: #ff9500;
+  --color-ios-yellow: #ffcc00;
+  --color-ios-thumb: #ffffff;
+  --color-ios-track: rgb(120 120 128 / 0.2);
+  --color-ios-switch-off: rgb(120 120 128 / 0.16);
+  --color-ios-fill-strong: rgb(118 118 128 / 0.2);
+  --color-ios-tint: rgb(0 0 0 / 0.04);
+  --color-ios-alert: rgb(242 242 247 / 0.92);
+  --color-ios-dim: rgb(0 0 0 / 0.25);
+  --color-ios-shadow: rgb(0 0 0 / 0.18);
+  --color-ios-page-top: #ffffff;
+  --color-ios-page: #e5e5ea;
+}
+:root {
+  color-scheme: dark;
 }
 
 @layer base {
@@ -215,7 +258,7 @@
     width: calc((100% - 4px) / var(--n));
     transform: translateX(calc(100% * var(--i)));
     border-radius: 7px;
-    background: #636366;
+    background: var(--color-ios-thumb);
     box-shadow:
       0 3px 8px rgb(0 0 0 / 0.12),
       0 3px 1px rgb(0 0 0 / 0.04);
@@ -254,7 +297,7 @@
     background: linear-gradient(
       to right,
       var(--color-ios-blue) var(--pct),
-      rgb(120 120 128 / 0.36) var(--pct)
+      var(--color-ios-track) var(--pct)
     );
   }
   .ios-range::-webkit-slider-thumb {
@@ -271,7 +314,7 @@
   .ios-range::-moz-range-track {
     height: 4px;
     border-radius: 2px;
-    background: rgb(120 120 128 / 0.36);
+    background: var(--color-ios-track);
   }
   .ios-range::-moz-range-progress {
     height: 4px;
@@ -306,13 +349,13 @@
       filter: brightness(1.12);
     }
     .ios-icon-btn:hover {
-      background: rgb(118 118 128 / 0.36);
+      background: var(--color-ios-fill-strong);
     }
     button.ios-row:hover:not(:active) {
       background-color: var(--color-ios-card2);
     }
     .ios-seg > button:not([aria-pressed='true']):hover {
-      background: rgb(255 255 255 / 0.06);
+      background: var(--color-ios-tint);
     }
     [role='switch']:hover {
       filter: brightness(1.12);

@@ -27,11 +27,33 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
+    <script>
+      // Apply the saved light mode before first paint (no dark flash).
+      // Key and shape match SETTINGS_KEY in src/App.svelte.
+      try {
+        const settings = JSON.parse(
+          localStorage.getItem('rattle-finder-settings') || '{}'
+        )
+        if (settings.lightMode === true) {
+          document.documentElement.dataset.theme = 'light'
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute('content', '#f2f2f7')
+          // Dark status bar text on the home-screen app
+          document
+            .querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
+            .setAttribute('content', 'default')
+        }
+      } catch {}
+    </script>
 
     <!-- Link previews (Reddit, forums, chat apps) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Find The Rattle" />
-    <meta property="og:title" content="Find The Rattle – find rattles and buzzes in your car" />
+    <meta
+      property="og:title"
+      content="Find The Rattle – find rattles and buzzes in your car"
+    />
     <meta property="og:description" content="%DESCRIPTION%" />
     <meta property="og:url" content="%SITE_URL%" />
     <meta property="og:image" content="%SITE_URL%og-image.png" />

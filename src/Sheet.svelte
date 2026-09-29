@@ -143,7 +143,7 @@
   role="presentation"
 >
   <div
-    class="absolute inset-0 bg-black/50"
+    class="absolute inset-0 bg-ios-dim"
     style="opacity: {backdropOpacity}"
     role="presentation"
     onclick={onClose}
