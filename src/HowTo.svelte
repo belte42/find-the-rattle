@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Github } from 'lucide-svelte'
+  import { ArrowLeftRight, Github, Speaker, Timer } from 'lucide-svelte'
   import Culprits from './Culprits.svelte'
 
   interface Props {
@@ -8,63 +8,90 @@
   }
 
   let { intro = false }: Props = $props()
+
+  const STEPS = [
+    {
+      title: 'Connect to the car',
+      text: 'Park somewhere quiet and connect your phone over Bluetooth or aux.',
+    },
+    {
+      title: 'Start quiet',
+      text: "Raise the volume slowly until something buzzes. Loud isn't better.",
+    },
+    {
+      title: 'Run a Rattle Test',
+      text: 'Start a sweep and tap the big pad whenever you hear a rattle.',
+    },
+    {
+      title: 'Hold the tone',
+      text: 'Nudge it up or down until the rattle is loudest.',
+    },
+    {
+      title: 'Find it by hand',
+      text: 'Press on panels until the noise stops. Name it, then mark it fixed.',
+    },
+  ]
+
+  const TIPS = [
+    {
+      icon: ArrowLeftRight,
+      text: 'Pulse or left/right balance in Manual shows which side it’s on.',
+    },
+    {
+      icon: Speaker,
+      text: 'Most car speakers are weak below about 35 Hz, so rattles there may need a subwoofer.',
+    },
+    {
+      icon: Timer,
+      text: 'Measure your delay in Settings for more accurate marks.',
+    },
+  ]
 </script>
 
-<div class="space-y-4 text-[15px] leading-relaxed text-ios-label2">
+<div class="space-y-7 text-subhead text-ios-label2">
   {#if intro}
-    <p>
-      Most interior rattles and buzzes are resonances: a loose trim panel, clip,
-      cable or bracket that vibrates at one particular frequency. Find The
-      Rattle plays low-frequency test tones through your car's speakers, so you
-      can make the rattle happen on demand while parked and track it down by
-      hand.
+    <p class="text-body text-ios-label">
+      Most rattles are a loose panel or clip that vibrates at one frequency.
+      Play that tone to make it rattle on demand, then find it by hand.
     </p>
   {/if}
-  <ol class="list-decimal space-y-2 pl-5">
-    <li>
-      Park somewhere quiet and connect your phone to the car stereo over
-      Bluetooth or aux.
-    </li>
-    <li>
-      Start with the volume low and raise it slowly until something starts to
-      buzz. Loud isn't better.
-    </li>
-    <li>
-      In <strong class="text-ios-label">Rattle Test</strong>, start a sweep and
-      tap the big pad whenever you hear a rattle. The frequency is saved,
-      corrected for your reaction time.
-    </li>
-    <li>
-      Press <strong class="text-ios-label">Hold</strong> to keep the tone on that
-      frequency and nudge it up or down until the rattle is loudest.
-    </li>
-    <li>
-      Press on door cards, dash trim and panels until the noise stops — that's
-      the culprit. Name it, then mark it fixed once it's sorted.
-    </li>
+
+  <ol class="space-y-4">
+    {#each STEPS as step, i (step.title)}
+      <li class="flex gap-3">
+        <span
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ios-blue/15 text-footnote font-semibold text-ios-blue"
+          aria-hidden="true">{i + 1}</span
+        >
+        <div class="min-w-0">
+          <p class="text-body font-semibold text-ios-label">{step.title}</p>
+          <p>{step.text}</p>
+        </div>
+      </li>
+    {/each}
   </ol>
-  <div>
-    <p class="mb-1 font-semibold text-ios-label">Common culprits</p>
+
+  <section>
+    <h4 class="mb-1 text-body font-semibold text-ios-label">Common culprits</h4>
     <Culprits />
-  </div>
-  <div>
-    <p class="mb-1 font-semibold text-ios-label">Tips</p>
-    <ul class="list-disc space-y-1 pl-5">
-      <li>
-        Use <strong class="text-ios-label">Manual</strong> mode with pulse or left/right
-        pan to work out which side of the car it's on.
-      </li>
-      <li>
-        Many car speakers produce little below about 35 Hz, so a rattle there
-        may only show up in cars with a subwoofer.
-      </li>
-      <li>
-        Measure your delay in Settings, through the car speakers, for more
-        accurate results.
-      </li>
+  </section>
+
+  <section>
+    <h4 class="mb-3 text-body font-semibold text-ios-label">Tips</h4>
+    <ul class="space-y-3">
+      {#each TIPS as tip (tip.text)}
+        <li class="flex gap-3">
+          <tip.icon
+            class="mt-0.5 h-5 w-5 shrink-0 text-ios-label3"
+            aria-hidden="true"
+          />
+          <span>{tip.text}</span>
+        </li>
+      {/each}
     </ul>
-  </div>
-  <p class="text-footnote text-ios-label2">
+  </section>
+
+  <p class="text-footnote">
     <a
       class="inline-flex items-center gap-1 align-bottom text-ios-blue"
       href="https://github.com/belte42/find-the-rattle"
