@@ -420,7 +420,7 @@
           <h1 class="text-large-title min-w-0 truncate">Find The Rattle</h1>
           <div class="-mr-2 flex shrink-0">
             <a
-              class="flex h-11 w-11 items-center justify-center rounded-full text-ios-blue active:opacity-50"
+              class="flex h-11 w-11 items-center justify-center rounded-full text-ios-yellow active:opacity-50"
               href="https://buymeacoffee.com/find.the.rattle"
               target="_blank"
               rel="noopener noreferrer"

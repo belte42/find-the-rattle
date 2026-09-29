@@ -157,7 +157,7 @@
         class="ios-row w-full text-left text-ios-blue"
         onclick={startCalibration}
       >
-        Measure reaction time
+        Measure delay
       </button>
       {#if reactionMs !== null}
         <button

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Github } from 'lucide-svelte'
+  import Culprits from './Culprits.svelte'
 
   interface Props {
     /** Open with what the app is for (the desktop page has its own intro) */
@@ -43,6 +44,10 @@
     </li>
   </ol>
   <div>
+    <p class="mb-1 font-semibold text-ios-label">Common culprits</p>
+    <Culprits />
+  </div>
+  <div>
     <p class="mb-1 font-semibold text-ios-label">Tips</p>
     <ul class="list-disc space-y-1 pl-5">
       <li>
@@ -50,17 +55,12 @@
         pan to work out which side of the car it's on.
       </li>
       <li>
-        Common culprits: door cards, dashboard and A-pillar trim, seat belt
-        buckles, sunglasses holders, the rear parcel shelf, number-plate frames
-        and loose items in door pockets.
-      </li>
-      <li>
         Many car speakers produce little below about 35 Hz, so a rattle there
         may only show up in cars with a subwoofer.
       </li>
       <li>
-        Measure your reaction time in Settings, through the car speakers, for
-        more accurate results.
+        Measure your delay in Settings, through the car speakers, for more
+        accurate results.
       </li>
     </ul>
   </div>
