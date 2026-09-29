@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { Github } from 'lucide-svelte'
+
   interface Props {
     /** Open with what the app is for (the desktop page has its own intro) */
     intro?: boolean
@@ -65,10 +67,11 @@
   <p class="text-footnote text-ios-label2">
     Free and open source ·
     <a
-      class="text-ios-blue"
+      class="inline-flex items-center gap-1 align-bottom text-ios-blue"
       href="https://github.com/belte42/find-the-rattle"
       target="_blank"
-      rel="noopener noreferrer">Source code</a
+      rel="noopener noreferrer"
+      ><Github class="h-4 w-4" aria-hidden="true" /> GitHub</a
     >
     ·
     <a
