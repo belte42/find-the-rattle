@@ -6,11 +6,6 @@
 
 <!-- Desktop-only column beside the app: what it is, open-on-phone QR, and the guide -->
 <aside class="max-w-xl py-4">
-  <p
-    class="mb-4 inline-flex items-center gap-2 rounded-full border border-ios-orange/30 bg-ios-orange/10 px-3 py-1 text-xs font-medium text-ios-orange"
-  >
-    Free · open source · nothing to install
-  </p>
   <h2
     class="mb-4 text-4xl font-bold leading-tight tracking-tight text-ios-label xl:text-5xl"
   >
