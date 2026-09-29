@@ -237,7 +237,7 @@
 
       <button
         type="button"
-        class="ios-btn mt-6 w-full bg-ios-green text-black"
+        class="ios-btn mt-6 w-full bg-ios-blue text-white"
         onclick={onStart}
         disabled={starting || rangeError !== null}
       >
@@ -474,7 +474,7 @@
       <div class="flex gap-3">
         <button
           type="button"
-          class="ios-btn flex-1 bg-ios-green/15 text-ios-green"
+          class="ios-btn flex-1 bg-ios-blue/15 text-ios-blue"
           onclick={onResume}
         >
           <Play class="h-5 w-5 fill-current" /> Resume

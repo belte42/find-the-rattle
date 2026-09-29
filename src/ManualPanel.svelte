@@ -169,7 +169,7 @@
   type="button"
   class="ios-btn w-full {audioActive
     ? 'bg-ios-red text-white'
-    : 'bg-ios-green text-black'}"
+    : 'bg-ios-blue text-white'}"
   onclick={audioActive ? onStop : onStart}
   disabled={!warningDismissed || starting}
 >

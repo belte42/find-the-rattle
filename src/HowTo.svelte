@@ -65,7 +65,6 @@
     </ul>
   </div>
   <p class="text-footnote text-ios-label2">
-    Free and open source ·
     <a
       class="inline-flex items-center gap-1 align-bottom text-ios-blue"
       href="https://github.com/belte42/find-the-rattle"
@@ -73,7 +72,7 @@
       rel="noopener noreferrer"
       ><Github class="h-4 w-4" aria-hidden="true" /> GitHub</a
     >
-    ·
+    · Free and open source ·
     <a
       class="text-ios-blue"
       href="https://github.com/belte42/find-the-rattle/issues"

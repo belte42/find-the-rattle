@@ -30,8 +30,8 @@
         <Smartphone class="h-5 w-5 text-ios-orange" /> Best used on your phone
       </p>
       <p class="text-sm leading-relaxed text-ios-label2">
-        Scan to open it in the car, connect to the stereo over Bluetooth or aux,
-        and add it to your home screen. It works offline too.
+        Scan with your phone's camera to open it, then connect the phone to your
+        car stereo over Bluetooth or aux. Nothing to install.
       </p>
     </div>
   </div>
