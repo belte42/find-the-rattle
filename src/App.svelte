@@ -18,6 +18,7 @@
   import {
     AUTO_STOP_OPTIONS,
     DEFAULT_AUTO_STOP,
+    DEFAULT_SWEEP_SPEED,
     DEFAULT_VOLUME,
     FREQ_MAX,
     FREQ_MIN,
@@ -90,7 +91,7 @@
   let sweepSpeed = $state(
     Math.max(
       MIN_SWEEP_SPEED,
-      Math.min(MAX_SWEEP_SPEED, num(storedTest.sweepSpeed, 2))
+      Math.min(MAX_SWEEP_SPEED, num(storedTest.sweepSpeed, DEFAULT_SWEEP_SPEED))
     )
   )
   let loop = $state(storedTest.loop === true)

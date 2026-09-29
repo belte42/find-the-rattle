@@ -2,6 +2,8 @@ export const FREQ_MIN = 20
 export const FREQ_MAX = 500
 export const MIN_SWEEP_SPEED = 0.5
 export const MAX_SWEEP_SPEED = 20
+/** Sweep speed for new users, in Hz/s */
+export const DEFAULT_SWEEP_SPEED = 3
 export const DEFAULT_VOLUME = 0.3
 
 /**
