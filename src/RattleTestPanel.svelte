@@ -9,7 +9,9 @@
     Plus,
     Square,
   } from 'lucide-svelte'
+  import { fade, slide } from 'svelte/transition'
   import { autoRepeat } from './lib/autoRepeat'
+  import { motion } from './lib/motion'
   import IosSwitch from './IosSwitch.svelte'
   import {
     FREQ_MIN,
@@ -35,7 +37,7 @@
     sweepCurrentFreq: number
     sweepDirection: 1 | -1 | 0
     /** Set while refining around a saved rattle */
-    refine: { lo: number; hi: number; name: string } | null
+    refine: { id: string; lo: number; hi: number; name: string } | null
     lastMark: { frequency: number; count: number } | null
     onStart: () => void
     onStop: () => void
@@ -92,6 +94,36 @@
   function mapPosition(freq: number) {
     return ((freq - axis.min) / axis.span) * 100
   }
+
+  /** Label rows on the map; labels that would overlap go on a higher row */
+  const MAP_LANES = 3
+  const LANE_PX = 28
+  /** Width a frequency label needs, in px */
+  const LABEL_PX = 58
+  let mapWidth = $state(0)
+
+  const ticks = $derived.by(() => {
+    const step = [5, 10, 20, 50, 100].find((s) => axis.span / s <= 6) ?? 100
+    const out: number[] = []
+    for (let f = Math.ceil(axis.min / step) * step; f <= axis.max; f += step)
+      out.push(f)
+    return out
+  })
+
+  const lanes = $derived.by(() => {
+    const lastX: number[] = Array(MAP_LANES).fill(-Infinity)
+    const out = new Map<string, number>()
+    const sorted = [...rattleRecords].sort((a, b) => a.frequency - b.frequency)
+    for (const r of sorted) {
+      const x = (mapPosition(r.frequency) / 100) * mapWidth
+      let lane = lastX.findIndex((last) => x - last >= LABEL_PX)
+      // All rows crowded: use the one whose last label is furthest away
+      if (lane === -1) lane = lastX.indexOf(Math.min(...lastX))
+      lastX[lane] = x
+      out.set(r.id, lane)
+    }
+    return out
+  })
 
   function onMarkKey(e: KeyboardEvent) {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -150,268 +182,317 @@
   </button>
 {/snippet}
 
-<div class="flex flex-1 flex-col">
-  {#if testState === 'idle'}
-    <!-- Sweep settings -->
-    <p class="ios-section-header mt-4">Sweep</p>
-    <div class="ios-group">
-      <label class="ios-row">
-        <span class="flex-1">From</span>
-        <input
-          type="number"
-          inputmode="numeric"
-          min={FREQ_MIN}
-          max={FREQ_MAX}
-          bind:value={rangeMin}
-          class="w-20 bg-transparent text-right text-ios-label2 tabular-nums outline-none"
-        />
-        <span class="text-ios-label2">Hz</span>
-      </label>
-      <label class="ios-row">
-        <span class="flex-1">To</span>
-        <input
-          type="number"
-          inputmode="numeric"
-          min={FREQ_MIN}
-          max={FREQ_MAX}
-          bind:value={rangeMax}
-          class="w-20 bg-transparent text-right text-ios-label2 tabular-nums outline-none"
-        />
-        <span class="text-ios-label2">Hz</span>
-      </label>
-      <div class="ios-row block">
+<!-- Fade between idle / sweeping / holding -->
+{#key testState}
+  <div class="flex flex-1 flex-col" in:fade={{ duration: motion(180) }}>
+    {#if testState === 'idle'}
+      <!-- Sweep settings -->
+      <p class="ios-section-header mt-4">Sweep</p>
+      <div class="ios-group">
+        <label class="ios-row">
+          <span class="flex-1">From</span>
+          <input
+            type="number"
+            inputmode="numeric"
+            min={FREQ_MIN}
+            max={FREQ_MAX}
+            bind:value={rangeMin}
+            class="w-20 bg-transparent text-right text-ios-label2 tabular-nums outline-none"
+          />
+          <span class="text-ios-label2">Hz</span>
+        </label>
+        <label class="ios-row">
+          <span class="flex-1">To</span>
+          <input
+            type="number"
+            inputmode="numeric"
+            min={FREQ_MIN}
+            max={FREQ_MAX}
+            bind:value={rangeMax}
+            class="w-20 bg-transparent text-right text-ios-label2 tabular-nums outline-none"
+          />
+          <span class="text-ios-label2">Hz</span>
+        </label>
+        <div class="ios-row block">
+          {@render speedSlider()}
+        </div>
+        <div class="ios-row">
+          <div class="min-w-0 flex-1">
+            <p>Loop</p>
+            <p class="text-footnote text-ios-label2">Sweep up and back down</p>
+          </div>
+          <IosSwitch checked={loop} label="Loop" onchange={(v) => (loop = v)} />
+        </div>
+      </div>
+      {#if rangeError}
+        <p class="ios-section-footer text-ios-red!" role="alert">
+          {rangeError}
+        </p>
+      {:else if (rangeMin ?? 0) < WEAK_BASS_HZ}
+        <p class="ios-section-footer">
+          Many car speakers produce little below ~{WEAK_BASS_HZ} Hz, so rattles there
+          may not show up.
+        </p>
+      {/if}
+
+      <button
+        type="button"
+        class="ios-btn mt-6 w-full bg-ios-green text-black"
+        onclick={onStart}
+        disabled={starting || rangeError !== null}
+      >
+        <Play class="h-5 w-5 fill-current" /> Start Test
+      </button>
+
+      <!-- Rattle map -->
+      <div class="mt-8 mb-1.5 flex items-baseline justify-between px-4">
+        <p class="text-footnote text-ios-label2 uppercase">Rattle map</p>
+        {#if rattleRecords.length > 0}
+          <button
+            type="button"
+            class="text-subhead text-ios-blue active:opacity-50"
+            onclick={onClear}
+          >
+            Clear
+          </button>
+        {/if}
+      </div>
+      <div class="ios-group">
+        {#if rattleRecords.length === 0}
+          <p class="ios-row text-ios-label2">
+            No rattles yet. Start a test and tap the pad when something rattles.
+          </p>
+        {:else}
+          <!-- Frequency chart: a stem and label per rattle above a Hz scale; inset so end labels stay whole -->
+          <div class="ios-row block pt-4 pb-3">
+            <div
+              class="relative mx-5 h-[116px] tabular-nums"
+              bind:clientWidth={mapWidth}
+            >
+              {#each ticks as t (t)}
+                <div
+                  class="absolute top-0 bottom-5 w-px bg-ios-sep/50"
+                  style="left: {mapPosition(t)}%"
+                ></div>
+                <span
+                  class="absolute bottom-0 -translate-x-1/2 text-caption text-ios-label3"
+                  style="left: {mapPosition(t)}%">{t}</span
+                >
+              {/each}
+              <div
+                class="absolute inset-x-0 bottom-5 h-0.5 rounded-full bg-ios-card3"
+              ></div>
+              {#each rattleRecords as r (r.id)}
+                {@const lane = lanes.get(r.id) ?? 0}
+                {@const left = mapPosition(r.frequency)}
+                <div
+                  class="map-move pointer-events-none absolute bottom-5 w-0.5 -translate-x-1/2 {r.fixed
+                    ? 'bg-ios-green/60'
+                    : 'bg-ios-orange/60'}"
+                  style="left: {left}%; height: {16 + lane * LANE_PX}px"
+                ></div>
+                <div
+                  class="map-move pointer-events-none absolute bottom-5 h-2 w-2 -translate-x-1/2 translate-y-1/2 rounded-full {r.fixed
+                    ? 'bg-ios-green'
+                    : 'bg-ios-orange'}"
+                  style="left: {left}%"
+                ></div>
+              {/each}
+              <!-- Labels after all stems, so no stem crosses a label -->
+              {#each rattleRecords as r (r.id)}
+                {@const lane = lanes.get(r.id) ?? 0}
+                {@const left = mapPosition(r.frequency)}
+                <button
+                  type="button"
+                  class="map-move absolute -translate-x-1/2 rounded-full px-2 py-0.5 text-caption font-semibold whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-ios-blue active:opacity-60 {r.fixed
+                    ? 'bg-ios-card3 text-ios-green'
+                    : 'bg-ios-orange text-black'}"
+                  style="left: {left}%; bottom: {36 + lane * LANE_PX}px"
+                  title={r.name
+                    ? `${r.frequency} Hz – ${r.name}`
+                    : `${r.frequency} Hz`}
+                  onclick={() => onSelectForManual(r)}
+                  aria-label="Open {r.frequency} Hz{r.name
+                    ? ` (${r.name})`
+                    : ''} in Manual"
+                >
+                  {r.frequency} Hz
+                </button>
+              {/each}
+            </div>
+          </div>
+          <!-- List -->
+          {#each rattleRecords as r (r.id)}
+            <div
+              class="ios-row block py-3"
+              transition:slide={{ duration: motion(220) }}
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-16 shrink-0 font-rounded font-semibold tabular-nums {r.fixed
+                    ? 'text-ios-green line-through'
+                    : 'text-ios-orange'}"
+                >
+                  {r.frequency} Hz
+                </span>
+                <input
+                  type="text"
+                  bind:value={r.name}
+                  placeholder="Where? e.g. left door"
+                  class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-ios-label3 {r.fixed
+                    ? 'text-ios-label2'
+                    : ''}"
+                  aria-label="Name for rattle at {r.frequency} Hz"
+                />
+              </div>
+              <div class="-mx-2 mt-2 flex gap-1 text-subhead">
+                <button
+                  type="button"
+                  class="rounded-lg px-2 py-1.5 text-ios-blue active:opacity-50"
+                  onclick={() => onRefine(r)}>Refine</button
+                >
+                <button
+                  type="button"
+                  class="rounded-lg px-2 py-1.5 text-ios-blue active:opacity-50"
+                  onclick={() => onSelectForManual(r)}>Play</button
+                >
+                <button
+                  type="button"
+                  class="flex items-center gap-1 rounded-lg px-2 py-1.5 active:opacity-50 {r.fixed
+                    ? 'text-ios-green'
+                    : 'text-ios-blue'}"
+                  aria-pressed={r.fixed}
+                  onclick={() => onToggleFixed(r.id)}
+                >
+                  {#if r.fixed}<Check class="h-4 w-4" /> Fixed{:else}Mark fixed{/if}
+                </button>
+                <button
+                  type="button"
+                  class="ml-auto rounded-lg px-2 py-1.5 text-ios-red active:opacity-50"
+                  onclick={() => onDelete(r.id)}>Delete</button
+                >
+              </div>
+            </div>
+          {/each}
+        {/if}
+      </div>
+    {:else if testState === 'running'}
+      <div class="mb-3">
+        {@render bigReadout(
+          refine ? `Refining ${refine.lo}–${refine.hi} Hz` : 'Sweeping'
+        )}
+      </div>
+
+      <div class="mb-4 px-1">
         {@render speedSlider()}
       </div>
-      <div class="ios-row">
-        <div class="min-w-0 flex-1">
-          <p>Loop</p>
-          <p class="text-footnote text-ios-label2">Sweep up and back down</p>
-        </div>
-        <IosSwitch checked={loop} label="Loop" onchange={(v) => (loop = v)} />
-      </div>
-    </div>
-    {#if rangeError}
-      <p class="ios-section-footer text-ios-red!" role="alert">{rangeError}</p>
-    {:else if (rangeMin ?? 0) < WEAK_BASS_HZ}
-      <p class="ios-section-footer">
-        Many car speakers produce little below ~{WEAK_BASS_HZ} Hz, so rattles there
-        may not show up.
-      </p>
-    {/if}
 
-    <!-- Rattle map -->
-    <div class="mt-6 mb-1.5 flex items-baseline justify-between px-4">
-      <p class="text-footnote text-ios-label2 uppercase">Rattle map</p>
-      {#if rattleRecords.length > 0}
-        <button
-          type="button"
-          class="text-subhead text-ios-blue active:opacity-50"
-          onclick={onClear}
-        >
-          Clear
-        </button>
-      {/if}
-    </div>
-    <!-- basis-0 (not flex-1's 0%): fill the free space and scroll inside, rather than pushing Start off screen -->
-    <div class="ios-group mb-6 min-h-28 flex-1 basis-0 overflow-auto">
-      {#if rattleRecords.length === 0}
-        <p class="ios-row text-ios-label2">
-          No rattles yet. Start a test and tap the pad when something rattles.
+      <!-- Big tap pad: easy to hit while leaning into the car -->
+      <div
+        class="mb-4 flex min-h-40 flex-1 cursor-pointer flex-col items-center justify-center rounded-[20px] bg-ios-orange/15 p-4 text-center transition-colors select-none active:bg-ios-orange/30"
+        style="touch-action: none"
+        role="button"
+        tabindex="0"
+        aria-label="Mark rattle at current frequency"
+        onpointerdown={onMark}
+        onkeydown={onMarkKey}
+      >
+        <p class="text-[28px] leading-[34px] font-bold text-ios-orange">
+          Rattle!
         </p>
-      {:else}
-        <!-- Visual frequency axis -->
-        <div class="ios-row block">
-          <div class="relative h-8 w-full rounded-lg bg-ios-card2">
-            {#each rattleRecords as r (r.id)}
-              <button
-                type="button"
-                class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ios-blue {r.fixed
-                  ? 'bg-ios-green'
-                  : 'bg-ios-orange'}"
-                style="left: {mapPosition(r.frequency)}%"
-                title={r.name
-                  ? `${r.frequency} Hz – ${r.name}`
-                  : `${r.frequency} Hz`}
-                onclick={() => onSelectForManual(r)}
-                aria-label="Open {r.frequency} Hz{r.name
-                  ? ` (${r.name})`
-                  : ''} in Manual"
-              ></button>
-            {/each}
-            <div
-              class="pointer-events-none absolute right-0 bottom-0 left-0 flex justify-between px-1.5 text-[10px] text-ios-label3"
+        <p class="mt-1 text-subhead text-ios-orange/70">
+          Tap anywhere here when something rattles
+        </p>
+        {#if lastMark}
+          {#key lastMark.count}
+            <p
+              class="mark-flash mt-3 flex items-center gap-1 text-subhead font-semibold text-ios-green"
             >
-              <span>{axis.min}</span>
-              <span>{axis.max} Hz</span>
-            </div>
-          </div>
-        </div>
-        <!-- List -->
-        {#each rattleRecords as r (r.id)}
-          <div class="ios-row block">
-            <div class="flex items-center gap-3">
-              <span
-                class="w-16 shrink-0 font-rounded font-semibold tabular-nums {r.fixed
-                  ? 'text-ios-green line-through'
-                  : 'text-ios-orange'}"
-              >
-                {r.frequency} Hz
-              </span>
-              <input
-                type="text"
-                bind:value={r.name}
-                placeholder="Where? e.g. left door"
-                class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-ios-label3 {r.fixed
-                  ? 'text-ios-label2'
-                  : ''}"
-                aria-label="Name for rattle at {r.frequency} Hz"
-              />
-            </div>
-            <div class="-ml-2 mt-1 flex text-subhead">
-              <button
-                type="button"
-                class="rounded-lg px-2 py-1.5 text-ios-blue active:opacity-50"
-                onclick={() => onRefine(r)}>Refine</button
-              >
-              <button
-                type="button"
-                class="rounded-lg px-2 py-1.5 text-ios-blue active:opacity-50"
-                onclick={() => onSelectForManual(r)}>Play</button
-              >
-              <button
-                type="button"
-                class="flex items-center gap-1 rounded-lg px-2 py-1.5 active:opacity-50 {r.fixed
-                  ? 'text-ios-green'
-                  : 'text-ios-blue'}"
-                aria-pressed={r.fixed}
-                onclick={() => onToggleFixed(r.id)}
-              >
-                {#if r.fixed}<Check class="h-4 w-4" /> Fixed{:else}Mark fixed{/if}
-              </button>
-              <button
-                type="button"
-                class="ml-auto rounded-lg px-2 py-1.5 text-ios-red active:opacity-50"
-                onclick={() => onDelete(r.id)}>Delete</button
-              >
-            </div>
-          </div>
-        {/each}
-      {/if}
-    </div>
-
-    <button
-      type="button"
-      class="ios-btn w-full bg-ios-green text-black"
-      onclick={onStart}
-      disabled={starting || rangeError !== null}
-    >
-      <Play class="h-5 w-5 fill-current" /> Start Test
-    </button>
-  {:else if testState === 'running'}
-    <div class="mb-3">
-      {@render bigReadout(
-        refine ? `Refining ${refine.lo}–${refine.hi} Hz` : 'Sweeping'
-      )}
-    </div>
-
-    <div class="mb-4 px-1">
-      {@render speedSlider()}
-    </div>
-
-    <!-- Big tap pad: easy to hit while leaning into the car -->
-    <div
-      class="mb-4 flex min-h-40 flex-1 cursor-pointer flex-col items-center justify-center rounded-[20px] bg-ios-orange/15 p-4 text-center transition-colors select-none active:bg-ios-orange/30"
-      style="touch-action: none"
-      role="button"
-      tabindex="0"
-      aria-label="Mark rattle at current frequency"
-      onpointerdown={onMark}
-      onkeydown={onMarkKey}
-    >
-      <p class="text-[28px] leading-[34px] font-bold text-ios-orange">
-        Rattle!
-      </p>
-      <p class="mt-1 text-subhead text-ios-orange/70">
-        Tap anywhere here when something rattles
-      </p>
-      {#if lastMark}
-        {#key lastMark.count}
-          <p
-            class="mark-flash mt-3 flex items-center gap-1 text-subhead font-semibold text-ios-green"
-          >
-            <Check class="h-4 w-4" /> Marked {lastMark.frequency} Hz
-          </p>
-        {/key}
-      {/if}
-    </div>
-
-    <div class="flex gap-3">
-      <button
-        type="button"
-        class="ios-btn flex-1 bg-ios-blue/15 text-ios-blue"
-        onclick={onHold}
-      >
-        <Pause class="h-5 w-5 fill-current" /> Hold
-      </button>
-      {@render stopButton()}
-    </div>
-  {:else}
-    <!-- Holding: fine-tune around the frozen frequency -->
-    <div class="flex flex-1 flex-col items-center justify-center">
-      <div class="mb-4 flex w-full items-center justify-between gap-3">
-        <button
-          type="button"
-          class="ios-icon-btn h-[72px] w-[72px] shrink-0 rounded-[18px]"
-          use:autoRepeat={() => onNudge(-1)}
-          aria-label="Down 1 Hz"
-        >
-          <Minus class="h-8 w-8" />
-        </button>
-        {@render bigReadout('Holding', 'text-ios-blue')}
-        <button
-          type="button"
-          class="ios-icon-btn h-[72px] w-[72px] shrink-0 rounded-[18px]"
-          use:autoRepeat={() => onNudge(1)}
-          aria-label="Up 1 Hz"
-        >
-          <Plus class="h-8 w-8" />
-        </button>
+              <Check class="h-4 w-4" /> Marked {lastMark.frequency} Hz
+            </p>
+          {/key}
+        {/if}
       </div>
-      <p class="mb-4 text-center text-subhead text-ios-label2">
-        Nudge until the rattle is loudest, then press on panels to find it.
-      </p>
-      {#if lastMark}
-        {#key lastMark.count}
-          <p
-            class="mark-flash mb-2 flex items-center gap-1 text-subhead font-semibold text-ios-green"
-          >
-            <Check class="h-4 w-4" /> Saved {lastMark.frequency} Hz
-          </p>
-        {/key}
-      {/if}
-    </div>
 
-    <button
-      type="button"
-      class="ios-btn mb-3 w-full bg-ios-orange/15 text-ios-orange"
-      onclick={onSaveHeld}
-    >
-      Save {Math.round(sweepCurrentFreq)} Hz
-    </button>
-    <div class="flex gap-3">
+      <div class="flex gap-3">
+        <button
+          type="button"
+          class="ios-btn flex-1 bg-ios-blue/15 text-ios-blue"
+          onclick={onHold}
+        >
+          <Pause class="h-5 w-5 fill-current" /> Hold
+        </button>
+        {@render stopButton()}
+      </div>
+    {:else}
+      <!-- Holding: fine-tune around the frozen frequency -->
+      <div class="flex flex-1 flex-col items-center justify-center">
+        <div class="mb-4 flex w-full items-center justify-between gap-3">
+          <button
+            type="button"
+            class="ios-icon-btn h-[72px] w-[72px] shrink-0 rounded-[18px]"
+            use:autoRepeat={() => onNudge(-1)}
+            aria-label="Down 1 Hz"
+          >
+            <Minus class="h-8 w-8" />
+          </button>
+          {@render bigReadout(
+            refine ? `Refining ${refine.name.trim() || 'rattle'}` : 'Holding',
+            'text-ios-blue'
+          )}
+          <button
+            type="button"
+            class="ios-icon-btn h-[72px] w-[72px] shrink-0 rounded-[18px]"
+            use:autoRepeat={() => onNudge(1)}
+            aria-label="Up 1 Hz"
+          >
+            <Plus class="h-8 w-8" />
+          </button>
+        </div>
+        <p class="mb-4 text-center text-subhead text-ios-label2">
+          Nudge until the rattle is loudest, then press on panels to find it.
+        </p>
+        {#if lastMark}
+          {#key lastMark.count}
+            <p
+              class="mark-flash mb-2 flex items-center gap-1 text-subhead font-semibold text-ios-green"
+            >
+              <Check class="h-4 w-4" /> Saved {lastMark.frequency} Hz
+            </p>
+          {/key}
+        {/if}
+      </div>
+
       <button
         type="button"
-        class="ios-btn flex-1 bg-ios-green/15 text-ios-green"
-        onclick={onResume}
+        class="ios-btn mb-3 w-full bg-ios-orange/15 text-ios-orange"
+        onclick={onSaveHeld}
       >
-        <Play class="h-5 w-5 fill-current" /> Resume
+        {refine ? 'Update to' : 'Save'}
+        {Math.round(sweepCurrentFreq)} Hz
       </button>
-      {@render stopButton()}
-    </div>
-  {/if}
-</div>
+      <div class="flex gap-3">
+        <button
+          type="button"
+          class="ios-btn flex-1 bg-ios-green/15 text-ios-green"
+          onclick={onResume}
+        >
+          <Play class="h-5 w-5 fill-current" /> Resume
+        </button>
+        {@render stopButton()}
+      </div>
+    {/if}
+  </div>
+{/key}
 
 <style>
+  /* Chart stems and labels glide when a rattle is re-tuned or re-stacked */
+  .map-move {
+    transition:
+      left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+      bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+      height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
   .mark-flash {
     animation: flash 0.6s ease-out;
   }

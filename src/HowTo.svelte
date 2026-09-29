@@ -1,15 +1,22 @@
 <script lang="ts">
-  import { ChevronDown } from 'lucide-svelte'
-
   interface Props {
-    /** Desktop: always open, as a plain section (the page intro is shown separately) */
-    expanded?: boolean
+    /** Open with what the app is for (the desktop page has its own intro) */
+    intro?: boolean
   }
 
-  let { expanded = false }: Props = $props()
+  let { intro = false }: Props = $props()
 </script>
 
-{#snippet guide()}
+<div class="space-y-4 text-[15px] leading-relaxed text-ios-label2">
+  {#if intro}
+    <p>
+      Most interior rattles and buzzes are resonances: a loose trim panel, clip,
+      cable or bracket that vibrates at one particular frequency. Find The
+      Rattle plays low-frequency test tones through your car's speakers, so you
+      can make the rattle happen on demand while parked and track it down by
+      hand.
+    </p>
+  {/if}
   <ol class="list-decimal space-y-2 pl-5">
     <li>
       Park somewhere quiet and connect your phone to the car stereo over
@@ -71,34 +78,4 @@
       rel="noopener noreferrer">Report a problem or suggest a feature</a
     >
   </p>
-{/snippet}
-
-{#if expanded}
-  <section class="space-y-4 text-[15px] leading-relaxed text-ios-label2">
-    <h3 class="text-title3 font-semibold text-ios-label">
-      How to find a rattle in your car
-    </h3>
-    {@render guide()}
-  </section>
-{:else}
-  <details class="group ios-group mt-4">
-    <summary
-      class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ios-label"
-    >
-      How to find a rattle in your car
-      <ChevronDown
-        class="h-5 w-5 text-ios-label3 transition-transform group-open:rotate-180"
-      />
-    </summary>
-    <div class="space-y-4 px-4 pb-4 text-subhead text-ios-label2">
-      <p>
-        Most interior rattles and buzzes are resonances: a loose trim panel,
-        clip, cable or bracket that vibrates at one particular frequency. Find
-        The Rattle plays low-frequency test tones through your car's speakers,
-        so you can make the rattle happen on demand while parked and track it
-        down by hand.
-      </p>
-      {@render guide()}
-    </div>
-  </details>
-{/if}
+</div>

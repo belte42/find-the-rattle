@@ -3,6 +3,7 @@
   import type { AudioEngine, Beep } from './lib/audioEngine'
   import { AUTO_STOP_OPTIONS, REACTION_TIME_S } from './consts'
   import { track } from './lib/analytics'
+  import Sheet from './Sheet.svelte'
 
   interface Props {
     engine: AudioEngine
@@ -93,115 +94,91 @@
   }
 </script>
 
-<div
-  class="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-center"
-  role="presentation"
-  onclick={(e) => e.target === e.currentTarget && close()}
->
-  <div
-    class="sheet w-full max-w-md rounded-t-[14px] bg-ios-card px-4 pt-2 sm:rounded-[14px]"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="settings-title"
-  >
-    <!-- Grabber + navigation bar -->
-    <div class="mx-auto mb-1 h-[5px] w-9 rounded-full bg-ios-label3"></div>
-    <div class="relative mb-4 flex h-11 items-center justify-center">
-      <h2 id="settings-title" class="text-body font-semibold">Settings</h2>
-      <button
-        type="button"
-        class="absolute right-0 px-1 py-2 text-body font-semibold text-ios-blue active:opacity-50"
-        onclick={close}
-      >
-        Done
-      </button>
-    </div>
-
-    {#if calibrating}
-      <p class="mb-3 text-center text-subhead text-ios-label2">
-        Tap the pad as soon as you hear each beep ({results.length}/{TRIALS}).
-      </p>
-      <button
-        type="button"
-        class="mb-3 flex h-52 w-full items-center justify-center rounded-[20px] bg-ios-orange/15 text-title3 font-semibold text-ios-orange select-none active:bg-ios-orange/30"
-        style="touch-action: none"
-        onpointerdown={onTap}
-      >
-        {message}
-      </button>
-      <button
-        type="button"
-        class="ios-btn w-full text-ios-blue"
-        onclick={cancelCalibration}
-      >
-        Cancel
-      </button>
-    {:else}
-      <!-- Auto-stop -->
-      <p class="ios-section-header">Auto-stop</p>
-      <div class="ios-seg">
-        {#each AUTO_STOP_OPTIONS as min}
-          <button
-            type="button"
-            aria-pressed={autoStopMin === min}
-            onclick={() => {
-              autoStopMin = min
-              track('auto-stop-set', { minutes: min })
-            }}
-          >
-            {min === 0 ? 'Off' : `${min} min`}
-          </button>
-        {/each}
-      </div>
-      <p class="ios-section-footer mb-6">
-        Stops the tone automatically, in case you forget it's on.
-      </p>
-
-      <!-- Reaction time -->
-      <p class="ios-section-header">Reaction delay</p>
-      <div class="ios-group bg-ios-card2!">
-        <div class="ios-row">
-          <span class="flex-1">Delay</span>
-          <span class="text-ios-label2 tabular-nums">
-            {reactionMs ?? REACTION_TIME_S * 1000} ms · {reactionMs !== null
-              ? 'measured'
-              : 'default'}
-          </span>
-        </div>
+<Sheet title="Settings" onClose={close}>
+  {#if calibrating}
+    <p class="mb-3 text-center text-subhead text-ios-label2">
+      Tap the pad as soon as you hear each beep ({results.length}/{TRIALS}).
+    </p>
+    <button
+      type="button"
+      class="mb-3 flex h-52 w-full items-center justify-center rounded-[20px] bg-ios-orange/15 text-title3 font-semibold text-ios-orange select-none active:bg-ios-orange/30"
+      style="touch-action: none"
+      data-no-drag
+      onpointerdown={onTap}
+    >
+      {message}
+    </button>
+    <button
+      type="button"
+      class="ios-btn w-full text-ios-blue"
+      onclick={cancelCalibration}
+    >
+      Cancel
+    </button>
+  {:else}
+    <!-- Auto-stop -->
+    <p class="ios-section-header">Auto-stop</p>
+    <div
+      class="ios-seg"
+      style="--n: {AUTO_STOP_OPTIONS.length}; --i: {AUTO_STOP_OPTIONS.indexOf(
+        autoStopMin
+      )}"
+    >
+      {#each AUTO_STOP_OPTIONS as min}
         <button
           type="button"
-          class="ios-row w-full text-left text-ios-blue"
-          onclick={startCalibration}
+          aria-pressed={autoStopMin === min}
+          onclick={() => {
+            autoStopMin = min
+            track('auto-stop-set', { minutes: min })
+          }}
         >
-          Measure reaction time
+          {min === 0 ? 'Off' : `${min} min`}
         </button>
-        {#if reactionMs !== null}
-          <button
-            type="button"
-            class="ios-row w-full text-left text-ios-red"
-            onclick={() => {
-              reactionMs = null
-              message = ''
-            }}
-          >
-            Reset to default
-          </button>
-        {/if}
-      </div>
-      {#if message}
-        <p class="ios-section-footer text-ios-green!">{message}</p>
-      {/if}
-      <p class="ios-section-footer">
-        Subtracted when you tap during a sweep, so the saved frequency matches
-        what caused the rattle. Measure it in the car, through the same speakers
-        or Bluetooth you'll test with.
-      </p>
-    {/if}
-  </div>
-</div>
+      {/each}
+    </div>
+    <p class="ios-section-footer mb-6">
+      Stops the tone automatically, in case you forget it's on.
+    </p>
 
-<style>
-  .sheet {
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-  }
-</style>
+    <!-- Reaction time -->
+    <p class="ios-section-header">Reaction delay</p>
+    <div class="ios-group bg-ios-card2!">
+      <div class="ios-row">
+        <span class="flex-1">Delay</span>
+        <span class="text-ios-label2 tabular-nums">
+          {reactionMs ?? REACTION_TIME_S * 1000} ms · {reactionMs !== null
+            ? 'measured'
+            : 'default'}
+        </span>
+      </div>
+      <button
+        type="button"
+        class="ios-row w-full text-left text-ios-blue"
+        onclick={startCalibration}
+      >
+        Measure reaction time
+      </button>
+      {#if reactionMs !== null}
+        <button
+          type="button"
+          class="ios-row w-full text-left text-ios-red"
+          onclick={() => {
+            reactionMs = null
+            message = ''
+          }}
+        >
+          Reset to default
+        </button>
+      {/if}
+    </div>
+    {#if message}
+      <p class="ios-section-footer text-ios-green!">{message}</p>
+    {/if}
+    <p class="ios-section-footer">
+      Subtracted when you tap during a sweep, so the saved frequency matches
+      what caused the rattle. Measure it in the car, through the same speakers
+      or Bluetooth you'll test with.
+    </p>
+  {/if}
+</Sheet>

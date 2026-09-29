@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
+  import { fade } from 'svelte/transition'
   import {
+    CircleHelp,
     Coffee,
     Settings,
     SlidersHorizontal,
@@ -12,6 +14,7 @@
   import * as wakeLock from './lib/wakeLock'
   import { load, num, save } from './lib/storage'
   import { track } from './lib/analytics'
+  import { motion } from './lib/motion'
   import {
     AUTO_STOP_OPTIONS,
     DEFAULT_AUTO_STOP,
@@ -31,6 +34,7 @@
   import ManualPanel from './ManualPanel.svelte'
   import RattleTestPanel from './RattleTestPanel.svelte'
   import SettingsSheet from './SettingsSheet.svelte'
+  import Sheet from './Sheet.svelte'
   import HowTo from './HowTo.svelte'
   import DesktopIntro from './DesktopIntro.svelte'
 
@@ -52,6 +56,7 @@
   let warningDismissed = $state(load<unknown>(WARNING_KEY, false) === true)
   let volume = $state(initialVolume)
   let settingsOpen = $state(false)
+  let helpOpen = $state(false)
 
   // Wide screens show the intro/guide column beside the app card
   const desktopQuery = window.matchMedia('(min-width: 1024px)')
@@ -91,7 +96,12 @@
   let loop = $state(storedTest.loop === true)
   let sweepCurrentFreq = $state(30)
   let sweepDirection = $state<1 | -1 | 0>(0)
-  let refine = $state<{ lo: number; hi: number; name: string } | null>(null)
+  let refine = $state<{
+    id: string
+    lo: number
+    hi: number
+    name: string
+  } | null>(null)
   let lastMark = $state<{ frequency: number; count: number } | null>(null)
   let rattleRecords = $state<RattleRecord[]>(loadRecords())
   let frameId = 0
@@ -238,20 +248,28 @@
     hi: number,
     speed: number,
     loopSweep: boolean,
-    mode: 'sweep' | 'loop' | 'refine'
-  ) {
-    if (starting || testState !== 'idle' || !warningDismissed) return
+    mode: 'sweep' | 'loop' | 'refine',
+    startFreq?: number
+  ): Promise<boolean> {
+    if (starting || testState !== 'idle' || !warningDismissed) return false
     starting = true
     lastMark = null
     engine.enablePulse(false)
     engine.setPan(pan)
-    const ok = await engine.startSweep({ lo, hi, speed, loop: loopSweep })
+    const ok = await engine.startSweep({
+      lo,
+      hi,
+      speed,
+      loop: loopSweep,
+      startFreq,
+    })
     starting = false
-    if (!ok) return
+    if (!ok) return false
     testState = 'running'
     onStarted()
     trackSweep()
     track('test-start', { mode, from: lo, to: hi, speed })
+    return true
   }
 
   function startRattleTest() {
@@ -260,13 +278,23 @@
     beginSweep(rangeMin!, rangeMax!, sweepSpeed, loop, loop ? 'loop' : 'sweep')
   }
 
-  function refineRattle(r: RattleRecord) {
+  /** Hold the tone on a saved rattle to fine-tune it; Resume sweeps slowly around it */
+  async function refineRattle(r: RattleRecord) {
+    if (starting || testState !== 'idle') return
     const lo = Math.round(clampFreq(r.frequency - REFINE_SPAN))
     const hi = Math.round(clampFreq(r.frequency + REFINE_SPAN))
-    refine = { lo, hi, name: r.name }
+    refine = { id: r.id, lo, hi, name: r.name }
     speedBeforeRefine = sweepSpeed
     sweepSpeed = REFINE_SPEED
-    beginSweep(lo, hi, REFINE_SPEED, true, 'refine')
+    if (
+      !(await beginSweep(lo, hi, REFINE_SPEED, true, 'refine', r.frequency))
+    ) {
+      refine = null
+      sweepSpeed = speedBeforeRefine
+      return
+    }
+    sweepCurrentFreq = engine.holdSweep()
+    testState = 'holding'
   }
 
   /** Mirror the audio-clock sweep position into the UI */
@@ -302,12 +330,16 @@
   }
 
   function addRecord(freq: number, source: 'tap' | 'hold') {
-    rattleRecords.push({
-      id: newId(),
-      frequency: freq,
-      name: refine?.name ?? '',
-      fixed: false,
-    })
+    // Refining updates the rattle being refined rather than adding a copy of it
+    const refined = refine && rattleRecords.find((r) => r.id === refine!.id)
+    if (refined) refined.frequency = freq
+    else
+      rattleRecords.push({
+        id: newId(),
+        frequency: freq,
+        name: refine?.name ?? '',
+        fixed: false,
+      })
     lastMark = { frequency: freq, count: (lastMark?.count ?? 0) + 1 }
     navigator.vibrate?.(30)
     sessionMarks++
@@ -407,9 +439,15 @@
   />
 {/if}
 
+{#if helpOpen}
+  <Sheet title="How to Find a Rattle" onClose={() => (helpOpen = false)}>
+    <HowTo intro />
+  </Sheet>
+{/if}
+
 <!-- Phones: the app fills the screen. Larger screens: a phone-sized card, plus an intro column on desktop -->
 <div
-  class="page flex h-full justify-center md:items-center md:overflow-y-auto md:p-8 lg:items-start lg:gap-16 xl:gap-24"
+  class="page flex justify-center md:h-full md:items-center md:overflow-y-auto md:p-8 lg:items-start lg:gap-16 xl:gap-24"
 >
   {#if isDesktop}
     <div class="max-w-xl min-w-0 flex-1 pt-6">
@@ -418,7 +456,7 @@
   {/if}
 
   <main
-    class="app-main flex h-full w-full flex-col overflow-y-auto bg-ios-bg px-4 md:h-[min(880px,calc(100dvh-4rem))] md:w-[420px] md:shrink-0 md:rounded-[2.5rem] md:border md:border-ios-sep md:shadow-2xl md:shadow-black lg:sticky lg:top-0"
+    class="app-main flex min-h-dvh w-full flex-col bg-ios-bg px-4 md:h-[min(880px,calc(100dvh-4rem))] md:min-h-0 md:overflow-y-auto md:w-[420px] md:shrink-0 md:rounded-[2.5rem] md:border md:border-ios-sep md:shadow-2xl md:shadow-black lg:sticky lg:top-0"
   >
     <!-- Large title with trailing icon buttons -->
     <header class="mb-4">
@@ -445,13 +483,28 @@
           </button>
         </div>
       </div>
-      <p class="text-subhead text-ios-label2">
-        Find rattles and buzzes in your car
-      </p>
+      <div class="flex flex-wrap items-center justify-between gap-x-3">
+        <p class="text-subhead text-ios-label2">
+          Find rattles and buzzes in your car
+        </p>
+        <!-- On desktop the guide is in the side column -->
+        {#if !isDesktop}
+          <button
+            type="button"
+            class="-my-2 flex items-center gap-1 py-2 text-subhead text-ios-blue active:opacity-50"
+            onclick={() => {
+              helpOpen = true
+              track('help-open')
+            }}
+          >
+            <CircleHelp class="h-4 w-4" /> How it works
+          </button>
+        {/if}
+      </div>
     </header>
 
     <!-- Mode -->
-    <div class="ios-seg mb-3">
+    <div class="ios-seg mb-3" style="--n: 2; --i: {rattleTestMode ? 1 : 0}">
       <button
         type="button"
         class="min-h-9! text-subhead!"
@@ -489,60 +542,59 @@
     </div>
 
     {#if rattleTestMode}
-      <RattleTestPanel
-        bind:rangeMin
-        bind:rangeMax
-        bind:sweepSpeed
-        bind:loop
-        bind:rattleRecords
-        {testState}
-        {starting}
-        {rangeError}
-        {sweepCurrentFreq}
-        {sweepDirection}
-        {refine}
-        {lastMark}
-        onStart={startRattleTest}
-        onStop={stopFromButton}
-        onHold={holdSweep}
-        onResume={resumeSweep}
-        onNudge={nudge}
-        onSaveHeld={saveHeld}
-        onMark={markRattle}
-        onClear={clearRattleRecords}
-        onDelete={deleteRattle}
-        onToggleFixed={toggleFixed}
-        onRefine={refineRattle}
-        onSelectForManual={playInManual}
-      />
+      <div class="flex flex-1 flex-col" in:fade={{ duration: motion(180) }}>
+        <RattleTestPanel
+          bind:rangeMin
+          bind:rangeMax
+          bind:sweepSpeed
+          bind:loop
+          bind:rattleRecords
+          {testState}
+          {starting}
+          {rangeError}
+          {sweepCurrentFreq}
+          {sweepDirection}
+          {refine}
+          {lastMark}
+          onStart={startRattleTest}
+          onStop={stopFromButton}
+          onHold={holdSweep}
+          onResume={resumeSweep}
+          onNudge={nudge}
+          onSaveHeld={saveHeld}
+          onMark={markRattle}
+          onClear={clearRattleRecords}
+          onDelete={deleteRattle}
+          onToggleFixed={toggleFixed}
+          onRefine={refineRattle}
+          onSelectForManual={playInManual}
+        />
+      </div>
     {:else}
-      <ManualPanel
-        {frequency}
-        {pulseEnabled}
-        {pan}
-        {audioActive}
-        {starting}
-        {warningDismissed}
-        {rattleRecords}
-        {setFreq}
-        {togglePulse}
-        {setPan}
-        onSelectRattle={(r) => setFreq(r.frequency)}
-        onStart={startManual}
-        onStop={stopFromButton}
-        onOpenRattleTest={() => setRattleTestMode(true)}
-      />
+      <div class="flex flex-1 flex-col" in:fade={{ duration: motion(180) }}>
+        <ManualPanel
+          {frequency}
+          {pulseEnabled}
+          {pan}
+          {audioActive}
+          {starting}
+          {warningDismissed}
+          {rattleRecords}
+          {setFreq}
+          {togglePulse}
+          {setPan}
+          onSelectRattle={(r) => setFreq(r.frequency)}
+          onStart={startManual}
+          onStop={stopFromButton}
+          onOpenRattleTest={() => setRattleTestMode(true)}
+        />
+      </div>
     {/if}
 
     <!-- Always rendered (fixed height) so the Start/Stop button doesn't jump when playback starts -->
     <p class="mt-2 h-4 text-center text-caption text-ios-label2">
       {remaining !== null ? `Auto-stop in ${formatTime(remaining)}` : ''}
     </p>
-
-    <!-- Hidden during a test so the tap pad gets the space; on desktop it's in the side column -->
-    {#if !isDesktop && !(rattleTestMode && testState !== 'idle')}
-      <HowTo />
-    {/if}
   </main>
 </div>
 

@@ -41,7 +41,12 @@
     </div>
   </div>
 
-  <HowTo expanded />
+  <section>
+    <h3 class="mb-4 text-title3 font-semibold text-ios-label">
+      How to find a rattle in your car
+    </h3>
+    <HowTo />
+  </section>
 </aside>
 
 <style>
