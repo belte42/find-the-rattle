@@ -124,8 +124,10 @@
     opacity: 0.5;
   }
 
-  /* Inset grouped list */
+  /* Inset grouped list. No shrinking: in the app's flex column, overflow:hidden
+     would otherwise let short screens squash the group and clip its rows */
   .ios-group {
+    flex-shrink: 0;
     overflow: hidden;
     border-radius: 12px;
     background: var(--color-ios-card);

@@ -150,7 +150,7 @@
   </button>
 {/snippet}
 
-<div class="flex min-h-0 flex-1 flex-col">
+<div class="flex flex-1 flex-col">
   {#if testState === 'idle'}
     <!-- Sweep settings -->
     <p class="ios-section-header mt-4">Sweep</p>
@@ -212,7 +212,8 @@
         </button>
       {/if}
     </div>
-    <div class="ios-group mb-6 min-h-28 flex-1 overflow-auto">
+    <!-- basis-0 (not flex-1's 0%): fill the free space and scroll inside, rather than pushing Start off screen -->
+    <div class="ios-group mb-6 min-h-28 flex-1 basis-0 overflow-auto">
       {#if rattleRecords.length === 0}
         <p class="ios-row text-ios-label2">
           No rattles yet. Start a test and tap the pad when something rattles.
