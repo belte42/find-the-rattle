@@ -1,5 +1,17 @@
 <script lang="ts">
-  import { ArrowLeftRight, Github, Speaker, Timer } from 'lucide-svelte'
+  import {
+    ArrowLeftRight,
+    Cable,
+    Github,
+    Layers,
+    Puzzle,
+    Repeat,
+    Speaker,
+    Sticker,
+    Timer,
+    TriangleAlert,
+    Wrench,
+  } from 'lucide-svelte'
   import Culprits from './Culprits.svelte'
 
   interface Props {
@@ -29,6 +41,39 @@
     {
       title: 'Find it by hand',
       text: 'Press on panels until the noise stops. Name it, then mark it fixed.',
+    },
+  ]
+
+  const FIXES = [
+    {
+      icon: Sticker,
+      title: 'Felt or foam tape',
+      text: 'Stick anti-rattle felt tape where two hard parts touch, like a panel edge against the dash.',
+    },
+    {
+      icon: Puzzle,
+      title: 'Replace broken clips',
+      text: 'Lift the panel off with a plastic trim tool and swap any snapped clips. They are cheap and made for your car.',
+    },
+    {
+      icon: Wrench,
+      title: 'Tighten screws',
+      text: 'Check the screws holding trim, speakers and the number plate.',
+    },
+    {
+      icon: Cable,
+      title: 'Tie down cables',
+      text: 'Wrap loose wiring behind panels in fleece tape and fix it with cable ties.',
+    },
+    {
+      icon: Layers,
+      title: 'Deaden big panels',
+      text: 'Butyl sound-deadening pads on door skins stop large panels resonating.',
+    },
+    {
+      icon: Repeat,
+      title: 'Test again',
+      text: 'Run the same sweep. If it stays quiet, mark the rattle fixed.',
     },
   ]
 
@@ -74,6 +119,31 @@
   <section>
     <h4 class="mb-1 text-body font-semibold text-ios-label">Common culprits</h4>
     <Culprits />
+  </section>
+
+  <section>
+    <h4 class="mb-3 text-body font-semibold text-ios-label">Fixing it</h4>
+    <ul class="space-y-3">
+      {#each FIXES as fix (fix.title)}
+        <li class="flex gap-3">
+          <fix.icon
+            class="mt-0.5 h-5 w-5 shrink-0 text-ios-label3"
+            aria-hidden="true"
+          />
+          <div class="min-w-0">
+            <p class="font-semibold text-ios-label">{fix.title}</p>
+            <p>{fix.text}</p>
+          </div>
+        </li>
+      {/each}
+    </ul>
+    <p class="mt-4 flex gap-3 rounded-xl bg-ios-orange/10 p-3 text-ios-orange">
+      <TriangleAlert class="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+      <span
+        >Airbags sit behind the dashboard and often the A-pillar trim. If you're
+        not sure, leave those panels to a garage.</span
+      >
+    </p>
   </section>
 
   <section>

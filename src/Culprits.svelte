@@ -18,6 +18,7 @@
     name: string
     what: string
     check: string
+    fix: string
     /** Image search for real-life photos */
     search: string
   }
@@ -29,6 +30,7 @@
       what: 'The trim panels on the inside of each door, with the armrest, handle and speaker grille. They hang on plastic clips that loosen over time, and the door speaker sits right behind them.',
       check:
         'Press a flat hand on different spots of the panel, and around the speaker grille and window switches.',
+      fix: 'Replace broken clips, and put felt tape where the card touches the door frame or speaker.',
       search: 'car door card interior trim panel',
     },
     {
@@ -37,6 +39,7 @@
       what: 'The large moulded panel under the windscreen, with the vents, screens and glovebox. It is made of many pieces that meet at clipped seams.',
       check:
         'Press along the seams, around the vents and instrument cluster, and on the glovebox lid.',
+      fix: 'Push felt tape into the seams that buzz. Leave anything deeper to a garage, as the passenger airbag sits behind it.',
       search: 'car dashboard trim panels',
     },
     {
@@ -44,6 +47,7 @@
       name: 'A-pillar trim',
       what: 'The plastic covers on the pillars either side of the windscreen. They often hide wiring or an airbag, and can buzz against the windscreen or dashboard.',
       check: 'Press along the pillar, from the dashboard up to the roof.',
+      fix: 'Refit or replace its clips and add felt tape along the edge. It often covers a curtain airbag, so take care or ask a garage.',
       search: 'car A-pillar trim',
     },
     {
@@ -51,6 +55,7 @@
       name: 'Seat belt buckles',
       what: 'The metal latches beside each seat. An unused buckle can tap against the seat frame or nearby trim.',
       check: 'Hold the buckle still, or plug it in if nobody sits there.',
+      fix: 'Slip a foam sleeve or a strip of felt tape over the buckle.',
       search: 'car seat belt buckle',
     },
     {
@@ -58,6 +63,7 @@
       name: 'Sunglasses holder',
       what: 'The flip-down compartment in the roof console, near the rear-view mirror. The lid, or whatever is inside it, can buzz.',
       check: 'Empty it, then press the lid shut.',
+      fix: 'Stick a strip of felt inside the lid, or keep it empty.',
       search: 'car overhead sunglasses holder',
     },
     {
@@ -65,6 +71,7 @@
       name: 'Rear parcel shelf',
       what: 'The removable shelf or cover behind the back seats, under the rear window. In a hatchback it lifts with the boot lid. It only rests on its supports and is often near the rear speakers, so it rattles easily.',
       check: 'Press it down, or lift it out and test again.',
+      fix: 'Stick felt pads on its supports and check its strings are attached.',
       search: 'car rear parcel shelf',
     },
     {
@@ -72,6 +79,7 @@
       name: 'Number-plate frames',
       what: 'The plastic surround that holds the number plate on the outside of the car. Loose screws let it tap against the bumper or boot lid.',
       check: 'Press the plate against the car, or tighten its screws.',
+      fix: 'Tighten the screws and add foam pads behind the plate.',
       search: 'car number plate frame',
     },
     {
@@ -79,6 +87,7 @@
       name: 'Loose items',
       what: 'Coins, keys, bottles and cables in the door pockets, cup holders and glovebox. The easiest rattle to fix.',
       check: 'Empty the pockets and holders before you test.',
+      fix: 'Line pockets and cup holders with rubber mats.',
       search: 'car door pocket storage',
     },
   ]
@@ -236,6 +245,10 @@
       <p class="mb-3">
         <span class="text-ios-label">How to check:</span>
         {current.check}
+      </p>
+      <p class="mb-3">
+        <span class="text-ios-label">How to fix:</span>
+        {current.fix}
       </p>
       <a
         class="inline-flex items-center gap-1 text-ios-blue"
