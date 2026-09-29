@@ -421,7 +421,7 @@
           <div class="-mr-2 flex shrink-0">
             <a
               class="flex h-11 w-11 items-center justify-center rounded-full text-ios-yellow active:opacity-50"
-              href="https://www.buymeacoffee.com/rattle.finder"
+              href="https://buymeacoffee.com/find.the.rattle"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Buy me a coffee"
