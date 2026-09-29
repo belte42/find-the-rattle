@@ -101,7 +101,7 @@
     </p>
     <button
       type="button"
-      class="mb-3 flex h-52 w-full items-center justify-center rounded-[20px] bg-ios-orange/15 text-title3 font-semibold text-ios-orange select-none active:bg-ios-orange/30"
+      class="mb-3 flex h-52 w-full items-center justify-center rounded-[20px] bg-ios-orange/15 text-title3 font-semibold text-ios-orange select-none hover:bg-ios-orange/20 hover:opacity-100 active:bg-ios-orange/30"
       style="touch-action: none"
       data-no-drag
       onpointerdown={onTap}

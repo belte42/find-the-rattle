@@ -72,6 +72,28 @@
     caret-color: var(--color-ios-blue);
   }
 
+  /* Mouse users: pointer cursor on anything clickable (Tailwind's reset leaves
+     buttons on the default arrow), and text buttons/links dim on hover.
+     Components have their own hover look instead (see the end of the file). */
+  :where(button:not(:disabled), [role='button'], summary) {
+    cursor: pointer;
+  }
+  @media (hover: hover) {
+    :where(
+      a,
+      button:not(
+        :disabled,
+        .ios-btn,
+        .ios-icon-btn,
+        .ios-row,
+        [role='switch'],
+        .ios-seg > button
+      )
+    ):hover {
+      opacity: 0.75;
+    }
+  }
+
   /* Phones scroll the page itself, so the browser keeps the end of it clear of
      floating toolbars (iOS Safari). Larger screens fix the page to the viewport
      and scroll inside the phone-sized card instead. */
@@ -274,6 +296,27 @@
   /* Balance-style slider without a filled part */
   .ios-range-plain::-moz-range-progress {
     background: transparent;
+  }
+}
+
+/* Hover looks for mouse users (touch screens never see these) */
+@layer components {
+  @media (hover: hover) {
+    .ios-btn:not(:disabled):hover {
+      filter: brightness(1.12);
+    }
+    .ios-icon-btn:hover {
+      background: rgb(118 118 128 / 0.36);
+    }
+    button.ios-row:hover:not(:active) {
+      background-color: var(--color-ios-card2);
+    }
+    .ios-seg > button:not([aria-pressed='true']):hover {
+      background: rgb(255 255 255 / 0.06);
+    }
+    [role='switch']:hover {
+      filter: brightness(1.12);
+    }
   }
 }
 

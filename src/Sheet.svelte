@@ -139,7 +139,7 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onClose()} />
 
 <div
-  class="fixed inset-0 z-40 flex items-end justify-center sm:items-center"
+  class="fixed inset-0 z-40 flex items-end justify-center md:absolute"
   role="presentation"
 >
   <div
@@ -151,7 +151,7 @@
   ></div>
   <div
     bind:this={sheet}
-    class="sheet relative flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-[14px] bg-ios-card sm:rounded-[14px]"
+    class="sheet relative flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-[14px] bg-ios-card md:max-h-[92%]"
     class:settle={!dragging}
     style="transform: translateY({dragY}px)"
     role="dialog"

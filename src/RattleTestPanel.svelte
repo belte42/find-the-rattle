@@ -389,7 +389,7 @@
 
       <!-- Big tap pad: easy to hit while leaning into the car -->
       <div
-        class="mb-4 flex min-h-40 flex-1 cursor-pointer flex-col items-center justify-center rounded-[20px] bg-ios-orange/15 p-4 text-center transition-colors select-none active:bg-ios-orange/30"
+        class="mb-4 flex min-h-40 flex-1 cursor-pointer flex-col items-center justify-center rounded-[20px] bg-ios-orange/15 p-4 text-center transition-colors select-none hover:bg-ios-orange/20 active:bg-ios-orange/30"
         style="touch-action: none"
         role="button"
         tabindex="0"
