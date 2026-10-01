@@ -2,6 +2,7 @@
   import {
     ArrowLeftRight,
     Cable,
+    ChevronRight,
     Github,
     Layers,
     Puzzle,
@@ -147,6 +148,19 @@
       {/each}
     </ul>
   </section>
+
+  <a
+    class="flex items-center justify-between gap-3 rounded-xl bg-ios-fill p-4 text-ios-label"
+    href="/how-to-find-a-rattle-in-your-car/"
+  >
+    <span>
+      <span class="block font-semibold">Read the full guide</span>
+      <span class="text-footnote text-ios-label2"
+        >Narrowing it down, more culprits, fixes and FAQ</span
+      >
+    </span>
+    <ChevronRight class="h-5 w-5 shrink-0 text-ios-label3" aria-hidden="true" />
+  </a>
 
   <p class="text-footnote">
     <a

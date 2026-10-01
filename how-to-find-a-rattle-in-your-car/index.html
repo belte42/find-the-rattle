@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-website-id="8ea2bcf5-af00-434a-8dde-108703c8caa7"
+      data-domains="belte42.github.io,findtherattle.com,www.findtherattle.com"
+    ></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      How to Find a Rattle in Your Car (Step by Step) | Find The Rattle
+    </title>
+    <meta
+      name="description"
+      content="A step-by-step guide to finding interior rattles and buzzes in your car: narrow down when and where it happens, make it rattle on demand with test tones while parked, then fix it."
+    />
+    <link rel="canonical" href="%SITE_URL%how-to-find-a-rattle-in-your-car/" />
+
+    <link rel="icon" href="/volume-solid.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#000000" />
+    <script>
+      // Same saved light mode as the app (see SETTINGS_KEY in src/App.svelte)
+      try {
+        const settings = JSON.parse(
+          localStorage.getItem('rattle-finder-settings') || '{}'
+        )
+        if (settings.lightMode === true) {
+          document.documentElement.dataset.theme = 'light'
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute('content', '#f2f2f7')
+        }
+      } catch {}
+    </script>
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Find The Rattle" />
+    <meta property="og:title" content="How to Find a Rattle in Your Car" />
+    <meta
+      property="og:description"
+      content="Narrow it down, make it rattle on demand with test tones while parked, then fix it. A practical step-by-step guide."
+    />
+    <meta
+      property="og:url"
+      content="%SITE_URL%how-to-find-a-rattle-in-your-car/"
+    />
+    <meta property="og:image" content="%SITE_URL%og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="stylesheet" href="/src/guide.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Article",
+            "headline": "How to Find a Rattle in Your Car",
+            "description": "A step-by-step guide to finding interior rattles and buzzes in your car.",
+            "image": "%SITE_URL%og-image.png",
+            "datePublished": "2026-10-01",
+            "dateModified": "2026-10-01",
+            "author": {
+              "@type": "Organization",
+              "name": "Find The Rattle",
+              "url": "%SITE_URL%"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Find The Rattle",
+              "url": "%SITE_URL%"
+            },
+            "mainEntityOfPage": "%SITE_URL%how-to-find-a-rattle-in-your-car/"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Find The Rattle",
+                "item": "%SITE_URL%"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "How to find a rattle in your car",
+                "item": "%SITE_URL%how-to-find-a-rattle-in-your-car/"
+              }
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Why does my car only rattle at certain speeds or RPM?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Every loose part has a frequency it vibrates at most easily. At certain speeds or engine revs, the vibration reaching that part matches its frequency and it starts to rattle, then goes quiet again once you speed up or slow down."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Why does my car rattle more in cold weather?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Interior plastics shrink slightly in the cold, which opens up small gaps at clips and seams. Many rattles are worst on cold mornings and fade as the cabin warms up."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I find a rattle without driving?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Often, yes. Most interior rattles also respond to sound. Playing a slow low-frequency sweep through the car's speakers while parked makes loose panels buzz on demand, so you can find them by hand without driving around."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is a rattle in my car dangerous?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Interior trim rattles are annoying but usually harmless. Metallic clunks over bumps, or noises from the wheels, brakes or underneath the car, can point to worn suspension or a loose part, so have those checked by a mechanic."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What tape stops car rattles?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Felt or fleece tape works best where two hard surfaces touch, such as trim seams and clips. Foam tape fills larger gaps, and fleece-wrapped cable ties stop loose wiring from tapping against panels."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <header
+      class="sticky top-0 z-10 border-b border-ios-sep bg-ios-bg/85 backdrop-blur-xl"
+    >
+      <div
+        class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3"
+      >
+        <a
+          href="/"
+          class="flex items-center gap-2 font-semibold text-ios-label"
+        >
+          <img src="/icon.svg" alt="" class="h-7 w-7 rounded-lg" />
+          Find The Rattle
+        </a>
+        <a href="/" class="btn min-h-10! px-4! text-[15px]!">Open the app</a>
+      </div>
+    </header>
+
+    <main class="article mx-auto max-w-3xl px-4 pt-8 pb-16">
+      <nav class="mb-6 text-[13px] text-ios-label2" aria-label="Breadcrumb">
+        <a href="/" class="text-ios-blue">Find The Rattle</a>
+        <span aria-hidden="true"> › </span>
+        <span>How to find a rattle</span>
+      </nav>
+
+      <h1
+        class="mb-4 text-[34px] leading-[1.15] font-bold tracking-tight sm:text-[42px]"
+      >
+        How to find a rattle in your car
+      </h1>
+      <p class="text-[19px]! leading-relaxed">
+        A rattle you can only hear while driving is hard to track down: you
+        can't take your hands off the wheel, and it stops the moment you park.
+        This guide shows how to narrow it down, make it rattle on demand while
+        parked, and fix it for good.
+      </p>
+      <p class="text-[13px]! text-ios-label3!">Updated 1 October 2026</p>
+
+      <!-- OWNER: optional hero photo here, e.g. the app running on a phone in your car.
+           <img src="/guide/hero.jpg" alt="Find The Rattle sweeping test tones on a phone mounted on a car dashboard" class="my-6 w-full rounded-2xl" width="1200" height="675" loading="eager"> -->
+
+      <!-- Quick answer (what Google tends to show for "how to" searches) -->
+      <section class="card my-8" aria-labelledby="quick-answer">
+        <h2 id="quick-answer" class="mt-0! mb-3! text-[20px]!">
+          The short version
+        </h2>
+        <ol class="mb-0!">
+          <li>
+            <strong>Note when it happens:</strong> over bumps, at a certain
+            speed, at idle, with music, or only when it's cold.
+          </li>
+          <li>
+            <strong>Narrow down where:</strong> empty the cabin, then listen
+            from the passenger seat while someone else drives.
+          </li>
+          <li>
+            <strong>Make it rattle while parked:</strong> play a slow
+            low-frequency sweep through the car's speakers and stop when
+            something buzzes.
+          </li>
+          <li>
+            <strong>Find it by hand:</strong> hold that tone and press on nearby
+            panels until the noise stops.
+          </li>
+          <li>
+            <strong>Fix it:</strong> felt tape, a new clip, a tightened screw or
+            a tied-down cable, then test again.
+          </li>
+        </ol>
+      </section>
+
+      <h2 id="why">Why cars rattle</h2>
+      <p>
+        Almost every interior rattle is a loose part vibrating against something
+        hard: a trim panel whose clips have worn, two plastic pieces rubbing at
+        a seam, a cable tapping the back of the dashboard, or something rolling
+        around in a door pocket.
+      </p>
+      <p>
+        Each of those parts has a frequency it vibrates at most easily (its
+        resonant frequency). That's why a rattle often appears only at a certain
+        speed, engine speed or song, and disappears when anything changes. It's
+        also the key to finding it:
+        <strong
+          >play that frequency while parked and the part rattles on
+          demand.</strong
+        >
+      </p>
+
+      <h2 id="when">Step 1: Note when it happens</h2>
+      <p>
+        Before taking anything apart, spend a drive or two paying attention to
+        <em>when</em> the noise appears. It narrows the list of suspects
+        quickly.
+      </p>
+      <div class="my-6 grid gap-3 sm:grid-cols-2">
+        <div class="card">
+          <h3 class="mt-0!">Over bumps and rough roads</h3>
+          <p class="mb-0!">
+            Loose trim clips, things in door pockets, the glovebox or the boot,
+            seat belt buckles, the rear parcel shelf. A heavy
+            <em>clunk</em> rather than a rattle can be suspension, so get that
+            checked.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">At one particular speed</h3>
+          <p class="mb-0!">
+            A panel that resonates with road or wind vibration at that speed:
+            dashboard seams, mirrors, door cards, the A-pillar trim.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">At idle or certain engine revs</h3>
+          <p class="mb-0!">
+            Engine vibration reaching the dashboard or centre console. A tinny
+            buzz from underneath is often an exhaust heat shield instead.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">With music or bass</h3>
+          <p class="mb-0!">
+            Door cards around the speakers, the rear parcel shelf, number-plate
+            frames, boot-lid trim. These are the easiest to find with test
+            tones.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">Only when it's cold</h3>
+          <p class="mb-0!">
+            Plastics shrink in the cold and open up gaps at clips and seams.
+            Dashboard seams are the usual suspects, and the noise often fades as
+            the car warms up.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">All the time, everywhere</h3>
+          <p class="mb-0!">
+            Usually something loose in the car rather than the car itself. Empty
+            everything (next step) before going further.
+          </p>
+        </div>
+      </div>
+
+      <h2 id="where">Step 2: Narrow down where</h2>
+      <ol>
+        <li>
+          <strong>Empty the car.</strong> Glovebox, door pockets, cup holders,
+          centre console, sunglasses holder, the boot and the spare-wheel well.
+          A surprising number of "rattles" are a pen, coins or a loose jack.
+        </li>
+        <li>
+          <strong>Listen as a passenger.</strong> Have someone else drive on the
+          road where it happens while you move your head around the cabin. Never
+          go hunting for a rattle while you're driving yourself.
+        </li>
+        <li>
+          <strong>Change one thing at a time.</strong> Hold a panel, plug in an
+          unused seat belt, or lift out the parcel shelf, then listen again.
+        </li>
+        <li>
+          <strong>Record it.</strong> A phone video placed in different spots
+          makes it easier to compare which area is loudest.
+        </li>
+      </ol>
+      <p>
+        You'll usually end up with an area, such as "passenger side of the
+        dashboard" or "rear left", but not the exact part. That's where the next
+        step comes in.
+      </p>
+
+      <h2 id="test-tones">Step 3: Make it rattle while parked</h2>
+      <p>
+        Driving makes a rattle appear, but it's the worst place to find it.
+        Because rattles are resonances, you can trigger most interior ones with
+        sound instead: play a low-frequency tone through the car's own speakers
+        and slowly sweep it up. When the tone hits a loose part's frequency,
+        that part buzzes, and you're parked with both hands free.
+      </p>
+      <!-- OWNER: photo or short GIF here: the Rattle Test screen mid-sweep in your car.
+           <img src="/guide/sweep.jpg" alt="Rattle Test sweeping from 30 to 150 Hz on a phone" class="my-6 w-full rounded-2xl" loading="lazy"> -->
+      <p>
+        <a href="/">Find The Rattle</a> is a free web app that does exactly
+        this. It runs in your phone's browser, with nothing to install:
+      </p>
+      <ol>
+        <li>
+          <strong>Park somewhere quiet</strong> and connect your phone to the
+          car stereo over Bluetooth or aux.
+        </li>
+        <li>
+          <strong>Start with the volume low.</strong> Raise it slowly until
+          something starts to buzz. Louder isn't better, and very loud bass can
+          damage speakers.
+        </li>
+        <li>
+          <strong>Run a Rattle Test.</strong> The tone sweeps slowly through the
+          bass range. Tap the big pad whenever you hear a rattle, and the app
+          saves that frequency, corrected for your reaction time.
+        </li>
+        <li>
+          <strong>Hold the tone.</strong> Freeze the sweep on a saved frequency
+          and nudge it up or down until the rattle is loudest.
+        </li>
+      </ol>
+      <p>
+        If the noise only happens on one side, the <strong>balance</strong>
+        control plays the tone from the left or right speakers only, and
+        <strong>pulse</strong> turns it on and off every second so it's easier
+        to tell when the rattle stops.
+      </p>
+      <p class="my-6">
+        <a href="/" class="btn">Open Find The Rattle</a>
+      </p>
+
+      <h2 id="by-hand">Step 4: Find it by hand</h2>
+      <p>
+        With the tone holding the rattle steady, press firmly on panels in the
+        area one at a time. When you press the right spot, the rattle stops
+        instantly. That's your culprit.
+      </p>
+      <ul>
+        <li>
+          Press with a flat hand rather than a fingertip, so you cover more of
+          each panel.
+        </li>
+        <li>
+          Work along seams, where two pieces meet, and around speaker grilles
+          and vents.
+        </li>
+        <li>
+          If pressing one panel only makes it quieter, the culprit is probably
+          the piece next to it.
+        </li>
+      </ul>
+
+      <h2 id="culprits">Common culprits</h2>
+      <!-- OWNER: a photo of one of these (e.g. a door card off, showing its clips) helps a lot. -->
+      <div class="my-6 grid gap-3 sm:grid-cols-2">
+        <div class="card">
+          <h3 class="mt-0!">Door cards</h3>
+          <p class="mb-0!">
+            The trim panel inside each door hangs on plastic clips that loosen
+            over time, right in front of the door speaker. Press around the
+            speaker grille.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">Dashboard seams</h3>
+          <p class="mb-0!">
+            The dash is many pieces clipped together. Press along the seams and
+            around the vents, screen and glovebox.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">A-pillar trim</h3>
+          <p class="mb-0!">
+            The covers either side of the windscreen. They often hide an airbag,
+            so check your car's manual before removing them.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">Seat belt buckles</h3>
+          <p class="mb-0!">
+            An unused buckle can tap against the seat or trim. Plug it in to
+            check.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">Sunglasses holder</h3>
+          <p class="mb-0!">
+            The flip-down box in the roof console. Empty it and press the lid
+            shut.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">Rear parcel shelf</h3>
+          <p class="mb-0!">
+            It only rests on its supports, usually right by the rear speakers.
+            Lift it out and test again.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">Number-plate frames</h3>
+          <p class="mb-0!">
+            They sound like they're inside the car, especially with bass. Press
+            each plate against the car.
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="mt-0!">Door pockets and cubbies</h3>
+          <p class="mb-0!">
+            Coins, pens and keys. Empty everything before you start.
+          </p>
+        </div>
+      </div>
+
+      <h2 id="fix">How to fix it</h2>
+      <ul>
+        <li>
+          <strong>Felt or fleece tape</strong> where two hard parts touch: trim
+          seams, clip points, the edges of a panel. This fixes most interior
+          rattles.
+        </li>
+        <li>
+          <strong>Replace broken clips.</strong> Pop the panel off with a
+          plastic trim tool (not a screwdriver, which marks the plastic) and
+          swap any snapped clips. Clips for most cars are cheap online.
+        </li>
+        <li><strong>Tighten screws</strong> holding the part that rattles.</li>
+        <li>
+          <strong>Tie down loose cables</strong> behind the dash or inside the
+          door with fleece tape and cable ties.
+        </li>
+        <li>
+          <strong>Deaden big panels.</strong> Sound-deadening pads stop large
+          panels, such as door skins, from resonating with bass.
+        </li>
+        <li>
+          <strong>Test again</strong> with the same sweep. If it stays quiet,
+          you're done.
+        </li>
+      </ul>
+      <!-- OWNER: before/after photo of felt tape applied to a trim seam goes well here. -->
+
+      <h2 id="not-interior">When it's not an interior rattle</h2>
+      <p>
+        Test tones find rattles that respond to vibration in the cabin. Some
+        noises have other causes and need a mechanic rather than tape:
+      </p>
+      <ul>
+        <li>
+          Heavy clunks or knocks over bumps, which can mean worn suspension
+          parts.
+        </li>
+        <li>
+          Noises that change when you brake or turn, or that come from the
+          wheels.
+        </li>
+        <li>
+          A metallic rattle from underneath the car, often a loose heat shield
+          or exhaust part.
+        </li>
+      </ul>
+
+      <!-- OWNER: "How I found my rattle" section here. A short first-hand story with
+           your car, what you heard, the frequency the app found and what fixed it.
+           Real experience like this is what helps a guide rank. -->
+
+      <h2 id="faq">Frequently asked questions</h2>
+      <div class="faq">
+        <details>
+          <summary>
+            Why does my car only rattle at certain speeds or RPM?
+          </summary>
+          <p>
+            Every loose part has a frequency it vibrates at most easily. At
+            certain speeds or engine revs, the vibration reaching that part
+            matches its frequency and it starts to rattle, then goes quiet again
+            once you speed up or slow down.
+          </p>
+        </details>
+        <details>
+          <summary>Why does my car rattle more in cold weather?</summary>
+          <p>
+            Interior plastics shrink slightly in the cold, which opens up small
+            gaps at clips and seams. Many rattles are worst on cold mornings and
+            fade as the cabin warms up.
+          </p>
+        </details>
+        <details>
+          <summary>Can I find a rattle without driving?</summary>
+          <p>
+            Often, yes. Most interior rattles also respond to sound. Playing a
+            slow low-frequency sweep through the car's speakers while parked
+            makes loose panels buzz on demand, so you can find them by hand
+            without driving around.
+          </p>
+        </details>
+        <details>
+          <summary>Is a rattle in my car dangerous?</summary>
+          <p>
+            Interior trim rattles are annoying but usually harmless. Metallic
+            clunks over bumps, or noises from the wheels, brakes or underneath
+            the car, can point to worn suspension or a loose part, so have those
+            checked by a mechanic.
+          </p>
+        </details>
+        <details>
+          <summary>What tape stops car rattles?</summary>
+          <p>
+            Felt or fleece tape works best where two hard surfaces touch, such
+            as trim seams and clips. Foam tape fills larger gaps, and
+            fleece-wrapped cable ties stop loose wiring from tapping against
+            panels.
+          </p>
+        </details>
+      </div>
+
+      <section class="card mt-12 text-center">
+        <h2 class="mt-0! mb-2! text-[22px]!">
+          Find your rattle in a few minutes
+        </h2>
+        <p>Free, works in your phone's browser, nothing to install.</p>
+        <a href="/" class="btn">Open Find The Rattle</a>
+      </section>
+    </main>
+
+    <footer class="border-t border-ios-sep">
+      <div class="mx-auto max-w-3xl px-4 py-6 text-[13px] text-ios-label2">
+        <a href="/" class="text-ios-blue">Find The Rattle</a> · Free and open
+        source ·
+        <a
+          href="https://github.com/belte42/find-the-rattle"
+          class="text-ios-blue"
+          rel="noopener noreferrer"
+          >GitHub</a
+        >
+      </div>
+    </footer>
+  </body>
+</html>

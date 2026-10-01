@@ -3,6 +3,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
 import QRCode from 'qrcode'
+import { fileURLToPath } from 'node:url'
 
 /**
  * Where the production site lives (GitHub Pages custom domain, DNS at Hostinger).
@@ -11,17 +12,31 @@ import QRCode from 'qrcode'
  */
 const SITE_URL = 'https://findtherattle.com/'
 
+/** Static article pages, each a folder with an index.html (built as extra entries) */
+const GUIDES = ['how-to-find-a-rattle-in-your-car']
+
 const DESCRIPTION =
   'Find rattles and buzzes in your car. Free test tones that sweep through your car speakers so you can make a rattle happen on demand and track it down.'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? new URL(SITE_URL).pathname : '/',
+  build: {
+    rollupOptions: {
+      input: Object.fromEntries([
+        ['main', fileURLToPath(new URL('./index.html', import.meta.url))],
+        ...GUIDES.map((g) => [
+          g,
+          fileURLToPath(new URL(`./${g}/index.html`, import.meta.url)),
+        ]),
+      ]),
+    },
+  },
   plugins: [
     tailwindcss(),
     svelte(),
     {
-      // Fill %SITE_URL% / %DESCRIPTION% placeholders in index.html
+      // Fill %SITE_URL% / %DESCRIPTION% placeholders in the HTML pages
       name: 'html-site-meta',
       transformIndexHtml: (html) =>
         html
@@ -29,7 +44,7 @@ export default defineConfig(({ command }) => ({
           .replaceAll('%DESCRIPTION%', DESCRIPTION),
     },
     {
-      // robots.txt and a one-page sitemap, both pointing at SITE_URL
+      // robots.txt and a sitemap of the app and guide pages, all under SITE_URL
       name: 'robots-sitemap',
       generateBundle() {
         const lastmod = new Date().toISOString().slice(0, 10)
@@ -38,16 +53,19 @@ export default defineConfig(({ command }) => ({
           fileName: 'robots.txt',
           source: `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}sitemap.xml\n`,
         })
+        const urls = ['', ...GUIDES.map((g) => `${g}/`)].map(
+          (path) => `  <url>
+    <loc>${SITE_URL}${path}</loc>
+    <lastmod>${lastmod}</lastmod>
+  </url>
+`
+        )
         this.emitFile({
           type: 'asset',
           fileName: 'sitemap.xml',
           source: `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${SITE_URL}</loc>
-    <lastmod>${lastmod}</lastmod>
-  </url>
-</urlset>
+${urls.join('')}</urlset>
 `,
         })
       },
@@ -103,6 +121,8 @@ export default defineConfig(({ command }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         // Only needed by link-preview crawlers, not offline use
         globIgnores: ['**/og-image.png'],
+        // The app is one page; never answer guide URLs with the app shell
+        navigateFallbackDenylist: GUIDES.map((g) => new RegExp(`^/${g}`)),
       },
     }),
   ],
