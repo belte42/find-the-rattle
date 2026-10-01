@@ -29,6 +29,30 @@ export default defineConfig(({ command }) => ({
           .replaceAll('%DESCRIPTION%', DESCRIPTION),
     },
     {
+      // robots.txt and a one-page sitemap, both pointing at SITE_URL
+      name: 'robots-sitemap',
+      generateBundle() {
+        const lastmod = new Date().toISOString().slice(0, 10)
+        this.emitFile({
+          type: 'asset',
+          fileName: 'robots.txt',
+          source: `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}sitemap.xml\n`,
+        })
+        this.emitFile({
+          type: 'asset',
+          fileName: 'sitemap.xml',
+          source: `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${SITE_URL}</loc>
+    <lastmod>${lastmod}</lastmod>
+  </url>
+</urlset>
+`,
+        })
+      },
+    },
+    {
       // `import qrSvg from 'virtual:site-qr'`: QR code of SITE_URL as an SVG string
       name: 'site-qr',
       resolveId: (id) =>
