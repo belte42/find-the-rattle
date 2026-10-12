@@ -120,6 +120,15 @@
       aria-valuetext={panLabel}
     />
     <span class="text-footnote text-ios-label2">R</span>
+    <button
+      type="button"
+      class="-my-2 shrink-0 py-2 text-subhead text-ios-blue active:opacity-50 disabled:text-ios-label3"
+      onclick={() => setPan(0)}
+      disabled={pan === 0}
+      aria-label="Centre balance"
+    >
+      Centre
+    </button>
   </div>
 </div>
 
